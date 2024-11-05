@@ -1,0 +1,26 @@
+{
+  "name": "zoom_services",
+  "version": "1.0.0",
+  "description": "The Zoom Car Rental Service is a backend system built with Node.js and PostgreSQL. It provides essential functionalities for three types of users: Admin, User, and Car Owner.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/aakritigkmit/zoom_services.git"
+  },
+  "author": "Aakriti Khanna",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aakritigkmit/zoom_services/issues"
+  },
+  "homepage": "https://github.com/aakritigkmit/zoom_services#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
