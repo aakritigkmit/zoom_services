@@ -13,6 +13,7 @@
         "bracketSpacing": true,
         "jsxBracketSameLine": false,
         "parser": "babylon",
+         "endOfLine": "lf",
         "printWidth": 110,
         "semi": true,
         "tabWidth": 4,
