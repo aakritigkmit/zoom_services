@@ -1,7 +1,5 @@
-const sum =function(opearnd1 ,operand2){
-	return opearnd1 + operand2;
-}
+const sum = function (operand1, operand2) {
+  return operand1 + operand2;
+};
 
-
-module.exports=sum;
-
+module.exports = sum;
