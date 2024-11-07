@@ -4,7 +4,7 @@
   "description": "The Zoom Car Rental Service is a backend system built with Node.js and PostgreSQL. It provides essential functionalities for three types of users: Admin, User, and Car Owner.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "start": "nodemon app.js"
   },
   "repository": {
