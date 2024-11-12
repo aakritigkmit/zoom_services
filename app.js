@@ -1,6 +1,7 @@
 const express = require("express");
 const { sequelize } = require("./src/models");
 const dotenv = require("dotenv");
+const { connectToRedis } = require("./src/config/redis");
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ const connectDb = async function () {
 };
 
 connectDb();
+connectToRedis();
 
 const app = express();
 app.use(express.json());
