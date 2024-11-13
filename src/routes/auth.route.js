@@ -32,12 +32,7 @@ router.post(
   authController.register,
 );
 
-router.post(
-  "/login",
-  authenticate,
-  validateRequest(loginSchema),
-  authController.login,
-);
+router.post("/login", validateRequest(loginSchema), authController.login);
 
 router.delete("/logout", authenticate, authController.logout);
 
