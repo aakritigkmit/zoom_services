@@ -10,7 +10,7 @@ exports.registerSchema = Joi.object({
   password: Joi.string().min(6).required().messages({
     "string.min": "Password must be at least 6 characters long.",
   }),
-  roleName: Joi.array()
+  roles: Joi.array()
     .items(Joi.string().valid("Car Owner", "Admin", "Customer").required())
     .required(),
   city: Joi.string().min(3).max(100).required(),
@@ -35,9 +35,9 @@ exports.editUserDetailsSchema = Joi.object({
     .messages({
       "string.pattern.base": "Phone number must be a valid 10-digit number",
     }),
-  roleName: Joi.array()
-    .items(Joi.string().valid("Car Owner", "Admin", "Customer").required())
-    .required(),
+  roles: Joi.array().items(
+    Joi.string().valid("Car Owner", "Admin", "Customer"),
+  ),
   city: Joi.string().min(2).max(50).messages({
     "string.min": "City name should be at least 2 characters",
     "string.max": "City name should not exceed 50 characters",

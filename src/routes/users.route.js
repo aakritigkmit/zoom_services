@@ -7,6 +7,7 @@ const validateRequest = require("../middlewares/validator.middleware");
 const {
   registerSchema,
   fetchUserByIdSchema,
+  editUserDetailsSchema,
 } = require("../validators/users.validator");
 
 const router = express.Router();
@@ -26,6 +27,14 @@ router.get(
   authenticate,
   validateRequest(fetchUserByIdSchema, true),
   userController.fetchById,
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  validateRequest(fetchUserByIdSchema, true),
+  validateRequest(editUserDetailsSchema),
+  userController.editUserDetails,
 );
 
 module.exports = router;

@@ -7,7 +7,7 @@ exports.createUser = async (
   email,
   phoneNumber,
   password,
-  roleName,
+  roles,
   city,
 ) => {
   const userExists = await User.findOne({ where: { email } });
@@ -22,12 +22,12 @@ exports.createUser = async (
     email,
     password: hashedPassword,
     phone_number: phoneNumber,
-    roleName,
+    roles,
     city,
   });
 
   // console.log(newUser);
-  const role = await Role.findOne({ where: { name: roleName } });
+  const role = await Role.findOne({ where: { name: roles } });
   if (!role) {
     throw { statusCode: 400, message: "Role does not exist" };
   }
@@ -78,4 +78,18 @@ exports.fetchById = async (id, reqUser) => {
   }
 
   return { user };
+};
+
+exports.editUserDetails = async (userId, updateData) => {
+  if (updateData.password) {
+    updateData.password = await bcrypt.hash(updateData.password, 10);
+  }
+  const [rowsUpdated, [updatedUser]] = await User.update(updateData, {
+    where: { id: userId },
+    returning: true,
+  });
+  if (rowsUpdated === 0) {
+    throw new Error("User not found or no changes made");
+  }
+  return updatedUser;
 };

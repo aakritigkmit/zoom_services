@@ -7,7 +7,7 @@ const {
 } = require("../helpers/common.helper.js");
 
 exports.register = async (req, res) => {
-  const { name, email, phoneNumber, password, roleName, city } = req.body;
+  const { name, email, phoneNumber, password, roles, city } = req.body;
 
   try {
     const newUser = await userService.createUser(
@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
       email,
       phoneNumber,
       password,
-      roleName,
+      roles,
       city,
     );
     responseHandler(
@@ -57,5 +57,28 @@ exports.fetchById = async (req, res) => {
   } catch (error) {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
     console.log(error);
+  }
+};
+
+exports.editUserDetails = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (
+      req.user.id !== id &&
+      !req.user.roles.some((role) => role.name === "Admin")
+    ) {
+      return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
+
+    const updatedUser = await userService.editUserDetails(id, req.body);
+    console.log("updatedUser", updatedUser);
+    if (!updatedUser) {
+      return throwCustomError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    responseHandler(res, updatedUser, "User details updated successfully");
+  } catch (error) {
+    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
