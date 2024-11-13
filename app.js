@@ -1,10 +1,14 @@
+const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const { sequelize } = require("./src/models");
-const dotenv = require("dotenv");
 const { connectToRedis } = require("./src/config/redis");
+const { registerRoutes } = require("./src/routes/index.js");
 
-dotenv.config();
-
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+registerRoutes(app);
 const connectDb = async function () {
   try {
     await sequelize.authenticate();
@@ -14,11 +18,9 @@ const connectDb = async function () {
   }
 };
 
+// app.use;
 connectDb();
 connectToRedis();
-
-const app = express();
-app.use(express.json());
 
 app.get("/", (req, res) => {
   res.send("Hello world");
