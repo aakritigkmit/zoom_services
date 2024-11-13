@@ -15,7 +15,7 @@ exports.createUser = async (
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  console.log("phoneNumber", phoneNumber);
+  // console.log("phoneNumber", phoneNumber);
   const newUser = await User.create({
     name,
     email,
@@ -25,7 +25,7 @@ exports.createUser = async (
     city,
   });
 
-  console.log(newUser);
+  // console.log(newUser);
   const role = await Role.findOne({ where: { name: roleName } });
   if (!role) {
     throw { statusCode: 400, message: "Role does not exist" };
@@ -34,4 +34,22 @@ exports.createUser = async (
   await newUser.addRole(role);
 
   return newUser;
+};
+
+exports.fetchUsers = async () => {
+  const users = await User.findAll({
+    include: {
+      model: Role,
+      as: "roles",
+      through: { attributes: [] },
+      required: true,
+    },
+  });
+  const formattedUsers = users.map((user) => ({
+    ...user.toJSON(),
+    roles: user.roles.map((role) => role.name),
+  }));
+
+  // console.log(formattedUsers);
+  return formattedUsers;
 };

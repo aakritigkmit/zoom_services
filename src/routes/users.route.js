@@ -16,4 +16,6 @@ router.post(
   userController.register,
 );
 
+router.get("/", authenticate, userController.fetchUser);
+
 module.exports = router;

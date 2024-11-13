@@ -28,3 +28,16 @@ exports.register = async (req, res) => {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
   }
 };
+
+exports.fetchUser = async (req, res) => {
+  try {
+    if (!req.user || !req.user.roles.some((role) => role.name === "Admin")) {
+      return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
+
+    const users = await userService.fetchUsers();
+    responseHandler(res, users, "Users fetched successfully");
+  } catch (error) {
+    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
