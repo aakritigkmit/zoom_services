@@ -1,5 +1,6 @@
 const userService = require("../services/users.service");
 const { StatusCodes } = require("http-status-codes");
+
 const {
   errorHandler,
   responseHandler,
@@ -39,5 +40,22 @@ exports.fetchUser = async (req, res) => {
     responseHandler(res, users, "Users fetched successfully");
   } catch (error) {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.fetchById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await userService.fetchById(id, req.user);
+
+    if (result.statusCode) {
+      return errorHandler(res, result, result.statusCode);
+    }
+
+    responseHandler(res, result.user, "User fetched successfully");
+  } catch (error) {
+    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    console.log(error);
   }
 };
