@@ -21,11 +21,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       image: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-
       year: {
         type: Sequelize.INTEGER,
         allowNull: false,
