@@ -22,7 +22,6 @@ export default [
       "arrow-spacing": ["error", { before: true, after: true }],
       "max-len": ["error", { code: 150 }],
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      "consistent-return": "error",
       "no-duplicate-imports": "error",
       "prefer-template": "error",
     },
