@@ -48,3 +48,13 @@ exports.register = async (req, res) => {
     errorHandler(res, error.message, error.statusCode || 400);
   }
 };
+
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const token = await authService.login(email, password);
+    responseHandler(res, { token }, "Login successful");
+  } catch (error) {
+    errorHandler(res, error.message, error.statusCode || 400);
+  }
+};

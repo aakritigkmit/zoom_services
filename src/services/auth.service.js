@@ -1,7 +1,7 @@
 const { client } = require("../config/redis");
 
 const bcrypt = require("bcryptjs");
-
+const { generateToken } = require("../helpers/jwt.helper");
 const { generateOtp } = require("../utils/otp");
 const { sendOtpEmail } = require("../utils/email");
 const { User } = require("../models");
@@ -91,6 +91,28 @@ exports.registerUser = async (
       message: error.errors
         ? error.errors[0].message
         : error.message || "An unexpected error occurred.",
+    };
+  }
+};
+
+exports.login = async (email, password) => {
+  try {
+    const user = await User.findOne({
+      where: { email },
+      include: { model: Role, as: "roles", attributes: ["name"] },
+    });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw { statusCode: 400, message: "Invalid credentials" };
+    }
+
+    const token = generateToken({ id: user.id, role: user.roles[0].name });
+    return token;
+  } catch (error) {
+    console.error("Login error:", error.message);
+    throw {
+      statusCode: error.statusCode || 400,
+      message: error.message || "An error occurred during login.",
     };
   }
 };

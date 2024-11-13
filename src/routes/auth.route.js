@@ -8,6 +8,7 @@ const {
   sendOtpSchema,
   verifyOtpSchema,
   registerSchema,
+  loginSchema,
 } = require("../validators/auth.validator");
 
 router.post(
@@ -27,5 +28,7 @@ router.post(
   validateRequest(registerSchema),
   authController.register,
 );
+
+router.post("/login", validateRequest(loginSchema), authController.login);
 
 module.exports = router;
