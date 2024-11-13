@@ -8,6 +8,7 @@ const {
   registerSchema,
   fetchUserByIdSchema,
   editUserDetailsSchema,
+  deleteUserByIdSchema,
 } = require("../validators/users.validator");
 
 const router = express.Router();
@@ -35,6 +36,15 @@ router.patch(
   validateRequest(fetchUserByIdSchema, true),
   validateRequest(editUserDetailsSchema),
   userController.editUserDetails,
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  validateRequest(deleteUserByIdSchema, true),
+  validateRequest(fetchUserByIdSchema, true),
+  checkRole(["Admin"]),
+  userController.removeUser,
 );
 
 module.exports = router;

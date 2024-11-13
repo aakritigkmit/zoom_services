@@ -93,3 +93,15 @@ exports.editUserDetails = async (userId, updateData) => {
   }
   return updatedUser;
 };
+
+exports.removeUser = async (id) => {
+  const user = await User.findByPk(id);
+
+  if (!user) {
+    return { statusCode: StatusCodes.NOT_FOUND, message: "User not found" };
+  }
+
+  await user.destroy();
+
+  return { message: "User deleted successfully" };
+};

@@ -4,6 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const {
   errorHandler,
   responseHandler,
+  throwCustomError,
 } = require("../helpers/common.helper.js");
 
 exports.register = async (req, res) => {
@@ -78,6 +79,28 @@ exports.editUserDetails = async (req, res) => {
     }
 
     responseHandler(res, updatedUser, "User details updated successfully");
+  } catch (error) {
+    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.removeUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Admins can delete any user, but users can only delete their own profile
+    if (
+      req.user.id !== id &&
+      !req.user.roles.some((role) => role.name === "Admin")
+    ) {
+      return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
+
+    const deleted = await userService.removeUser(id);
+    if (!deleted) {
+      return throwCustomError("User not found", StatusCodes.NOT_FOUND);
+    }
+
+    responseHandler(res, null, "User deleted successfully");
   } catch (error) {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
   }
