@@ -24,3 +24,27 @@ exports.verifyOtp = async (req, res) => {
     errorHandler(res, error.message, 400);
   }
 };
+
+exports.register = async (req, res) => {
+  console.log("Request body:", req.body);
+  const { name, email, phoneNumber, password, roleName, city } = req.body;
+
+  try {
+    const newUser = await authService.registerUser(
+      name,
+      email,
+      phoneNumber,
+      password,
+      roleName,
+      city,
+    );
+    responseHandler(
+      res,
+      { user: newUser },
+      "User registered successfully",
+      201,
+    );
+  } catch (error) {
+    errorHandler(res, error.message, error.statusCode || 400);
+  }
+};

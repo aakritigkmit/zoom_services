@@ -7,6 +7,7 @@ const validateRequest = require("../middlewares/validator.middleware");
 const {
   sendOtpSchema,
   verifyOtpSchema,
+  registerSchema,
 } = require("../validators/auth.validator");
 
 router.post(
@@ -19,6 +20,12 @@ router.post(
   "/verify-otp",
   validateRequest(verifyOtpSchema),
   authController.verifyOtp,
+);
+
+router.post(
+  "/register",
+  validateRequest(registerSchema),
+  authController.register,
 );
 
 module.exports = router;

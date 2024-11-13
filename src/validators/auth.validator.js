@@ -12,10 +12,12 @@ const verifyOtpSchema = Joi.object({
 const registerSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
-  phone_number: Joi.string()
+  phoneNumber: Joi.string()
     .pattern(/^[0-9]{10}$/)
     .required(),
   password: Joi.string().min(6).required(),
+  roleName: Joi.array().items(Joi.string()).required(),
+  city: Joi.string().required(),
 });
 
 const loginSchema = Joi.object({
