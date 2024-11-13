@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
-
+const {
+  authenticate,
+  isTokenBlacklisted,
+} = require("../middlewares/auth.middleware");
 const validateRequest = require("../middlewares/validator.middleware");
 
 const {
@@ -29,6 +32,13 @@ router.post(
   authController.register,
 );
 
-router.post("/login", validateRequest(loginSchema), authController.login);
+router.post(
+  "/login",
+  authenticate,
+  validateRequest(loginSchema),
+  authController.login,
+);
+
+router.delete("/logout", authenticate, authController.logout);
 
 module.exports = router;

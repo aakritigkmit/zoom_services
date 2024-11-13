@@ -1,6 +1,7 @@
 const authService = require("../services/auth.service");
 
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
+const { blacklistToken } = require("../helpers/jwt.helper");
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -56,5 +57,21 @@ exports.login = async (req, res) => {
     responseHandler(res, { token }, "Login successful");
   } catch (error) {
     errorHandler(res, error.message, error.statusCode || 400);
+  }
+};
+
+exports.logout = async (req, res) => {
+  const token = req.headers["authorization"]?.replace("Bearer ", "");
+  console.log(token);
+  if (!token) {
+    return errorHandler(res, "Token not provided", 401);
+  }
+
+  try {
+    await blacklistToken(token);
+    responseHandler(res, null, "Logged out successfully");
+  } catch (error) {
+    console.error("Logout error:", error.message);
+    errorHandler(res, "Failed to logout", 400);
   }
 };
