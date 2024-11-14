@@ -116,3 +116,13 @@ exports.updateCarStatus = async (carId, status, userId) => {
   await car.update({ status });
   return car;
 };
+
+exports.removeCar = async (carId) => {
+  const car = await Car.findByPk(carId);
+  if (!car) {
+    return null;
+  }
+
+  await car.destroy();
+  return car;
+};

@@ -40,4 +40,10 @@ router.patch(
   carController.updateCarStatus,
 );
 
+router.delete(
+  "/:id",
+  authenticate,
+  checkRole(["Admin"]),
+  carController.removeCar,
+);
 module.exports = router;
