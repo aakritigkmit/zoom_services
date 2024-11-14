@@ -16,3 +16,31 @@ exports.createCar = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };
+
+exports.findNearestCars = async (req, res) => {
+  const { latitude, longitude, radius } = req.query;
+
+  if (!latitude || !longitude) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      message: "Latitude and longitude are required",
+    });
+  }
+
+  try {
+    // Call the service to find nearest cars
+    const nearbyCars = await carService.findNearestCars(
+      parseFloat(latitude),
+      parseFloat(longitude),
+      radius ? parseFloat(radius) : 10,
+    );
+
+    // Return the list of nearby cars
+    res.status(StatusCodes.OK).json({ nearbyCars });
+  } catch (error) {
+    console.error("Error finding nearest cars:", error.message);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      message: "Unable to find nearby cars",
+      error: error.message,
+    });
+  }
+};

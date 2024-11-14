@@ -4,7 +4,6 @@ const Joi = require("joi");
 const createCarSchema = Joi.object({
   model: Joi.string().required(),
   type: Joi.string().required(),
-  image: Joi.any().required(),
   year: Joi.number().integer().min(1886).required(),
   fuel_type: Joi.string().valid("cng", "diesel", "petrol").required(),
   city: Joi.string().required(),
