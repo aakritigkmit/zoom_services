@@ -79,3 +79,7 @@ exports.findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
     throw new Error("Failed to retrieve nearby cars from Redis");
   }
 };
+
+exports.fetchByCarId = async (id) => {
+  return await Car.findByPk(id);
+};

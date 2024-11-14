@@ -44,3 +44,18 @@ exports.findNearestCars = async (req, res) => {
     });
   }
 };
+
+exports.fetchByCarId = async (req, res) => {
+  const carId = req.params.id;
+  try {
+    const car = await carService.fetchByCarId(carId);
+    if (!car) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Car not found" });
+    }
+    res.status(StatusCodes.OK).json({ car });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+  }
+};

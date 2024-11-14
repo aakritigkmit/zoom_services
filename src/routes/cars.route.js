@@ -8,7 +8,8 @@ const upload = require("../middlewares/multer.middleware");
 const validateRequest = require("../middlewares/validator.middleware");
 const { createCarSchema } = require("../validators/cars.validator");
 
-router.get("/", carController.findNearestCars);
+router.get("/", authenticate, carController.findNearestCars);
+router.get("/:id", authenticate, carController.fetchByCarId);
 
 router.post(
   "/",
