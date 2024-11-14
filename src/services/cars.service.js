@@ -1,8 +1,10 @@
 const { Car } = require("../models");
+
 const { client } = require("../config/redis");
+const { StatusCodes } = require("http-status-codes");
+const { throwCustomError } = require("../helpers/common.helper.js");
 
 exports.createCar = async (carData, ownerId, imagePath) => {
-  // const { latitude, longitude, price_per_km, price_per_hr, year } = carData;
   const cleanCarData = { ...carData };
   console.log("cleanCarData", cleanCarData);
   const latitude = parseFloat(carData.latitude);
@@ -95,5 +97,22 @@ exports.updateCarDetails = async (carId, updatedData, userId) => {
     throw new Error("Car not found");
   }
   await car.update(updatedData);
+  return car;
+};
+
+exports.updateCarStatus = async (carId, status, userId) => {
+  console.log(userId);
+  const car = await Car.findByPk(carId);
+  console.log("car", car);
+  if (userId !== car.user_id) {
+    return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+  }
+  console.log("userId updated", userId);
+  console.log("car.user_id updated", car.user_id);
+
+  if (!car) {
+    throw new Error("Car not found");
+  }
+  await car.update({ status });
   return car;
 };

@@ -9,6 +9,7 @@ const validateRequest = require("../middlewares/validator.middleware");
 const {
   createCarSchema,
   updateCarSchema,
+  updateCarStatusSchema,
 } = require("../validators/cars.validator");
 
 router.post(
@@ -29,6 +30,14 @@ router.put(
   checkRole(["Car Owner", "Admin"]),
   validateRequest(updateCarSchema),
   carController.update,
+);
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  checkRole(["Car Owner", "Admin"]),
+  validateRequest(updateCarStatusSchema),
+  carController.updateCarStatus,
 );
 
 module.exports = router;

@@ -83,3 +83,20 @@ exports.update = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };
+
+exports.updateCarStatus = async (req, res) => {
+  try {
+    const carId = req.params.id;
+    const { status } = req.body;
+    const userId = req.user.id;
+    console.log("userId", userId);
+    const updatedCar = await carService.updateCarStatus(carId, status, userId);
+
+    res
+      .status(200)
+      .json({ message: "Car status updated successfully", data: updatedCar });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
