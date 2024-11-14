@@ -59,3 +59,27 @@ exports.fetchByCarId = async (req, res) => {
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };
+
+exports.update = async (req, res) => {
+  try {
+    const carId = req.params.id;
+    console.log("carId", carId);
+    const userId = req.user.id;
+    const updatedData = req.body;
+
+    const updatedCar = await carService.updateCarDetails(
+      carId,
+      updatedData,
+      userId,
+    );
+
+    if (!updatedCar) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "Car not found" });
+    }
+    res.status(StatusCodes.OK).json({ updatedCar });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+  }
+};

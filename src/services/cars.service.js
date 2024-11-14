@@ -83,3 +83,17 @@ exports.findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
 exports.fetchByCarId = async (id) => {
   return await Car.findByPk(id);
 };
+
+exports.updateCarDetails = async (carId, updatedData, userId) => {
+  const car = await Car.findByPk(carId);
+  // console.log("car", car);
+  if (userId !== car.user_id) {
+    return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+  }
+
+  if (!car) {
+    throw new Error("Car not found");
+  }
+  await car.update(updatedData);
+  return car;
+};
