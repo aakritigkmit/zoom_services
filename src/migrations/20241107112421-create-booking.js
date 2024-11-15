@@ -35,7 +35,7 @@ module.exports = {
       },
       status: {
         type: Sequelize.ENUM("picked_up", "dropped_off", "cancelled"),
-        allowNull: false,
+        allowNull: true,
       },
       drop_off_time: {
         type: Sequelize.DATE,

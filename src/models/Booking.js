@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       status: {
         type: DataTypes.ENUM("picked_up", "dropped_off", "canceled"),
-        allowNull: false,
+        allowNull: true,
       },
 
       fare: {
