@@ -1,9 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const bookingService = require("../services/bookings.service");
-const {
-  responseHandler,
-  throwCustomError,
-} = require("../helpers/common.helper");
+const { throwCustomError, errorHandler } = require("../helpers/common.helper");
+const { Booking } = require("../models");
 
 exports.createBooking = async (req, res) => {
   try {
@@ -15,9 +13,7 @@ exports.createBooking = async (req, res) => {
       booking: newBooking,
     });
   } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: error.message });
+    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
 };
 
@@ -37,21 +33,55 @@ exports.fetchByBookingId = async (req, res) => {
 };
 
 exports.cancelBooking = async (req, res) => {
+  const { id } = req.params;
+
   try {
-    const { id } = req.params;
-    const userId = req.user.id;
-    console.log("userId", userId);
+    const booking = await Booking.findByPk(id);
 
-    const canceledBooking = await bookingService.cancelBooking(id, userId);
+    if (!booking) {
+      throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
+    }
 
-    return responseHandler(
-      res,
-      200,
-      "Booking cancelled successfully.",
-      canceledBooking,
-    );
+    if (booking.status === "Cancelled") {
+      throwCustomError("Booking is already cancelled", StatusCodes.BAD_REQUEST);
+    }
+
+    booking.status = "Cancelled";
+    await booking.save();
+
+    res.status(StatusCodes.OK).json({ booking });
   } catch (error) {
-    console.log(error);
-    return throwCustomError(res, 400, error.message);
+    console.error("Error in cancelBooking:", error);
+    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+  }
+};
+
+exports.submitFeedback = async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+
+    console.log("Booking ID:", bookingId);
+
+    const { feedback } = req.body;
+
+    if (!feedback) {
+      throwCustomError("Feedback is required", 400);
+    }
+
+    const userId = req.user.id;
+    console.log("User ID:", userId);
+
+    const result = await bookingService.submitFeedback({
+      bookingId,
+      userId,
+      feedback,
+    });
+
+    res.status(StatusCodes.OK).json({
+      message: "Feedback submitted successfully",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
   }
 };

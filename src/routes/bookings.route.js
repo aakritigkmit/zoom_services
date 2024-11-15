@@ -15,4 +15,6 @@ router.post(
 router.get("/:id", authenticate, bookingController.fetchByBookingId);
 router.patch("/:id/cancel", authenticate, bookingController.cancelBooking);
 
+router.post("/:id/feedback", authenticate, bookingController.submitFeedback);
+
 module.exports = router;

@@ -1,6 +1,8 @@
 const { Booking, Car, User } = require("../models");
 const { calculateBookingFare } = require("../helpers/calculateFares.helper");
 
+const { throwCustomError } = require("../helpers/common.helper");
+
 exports.createBooking = async (data) => {
   const car = await Car.findByPk(data.car_id);
   if (!car) {
@@ -25,7 +27,7 @@ exports.createBooking = async (data) => {
     data.end_date,
   );
 
-  const bookingData = { ...data, fare: totalFare, status: null };
+  const bookingData = { ...data, fare: totalFare };
 
   return await Booking.create(bookingData);
 };
@@ -45,18 +47,38 @@ exports.cancelBooking = async (bookingId, userId) => {
     include: [{ model: User, as: "user", attributes: ["name", "email"] }],
   });
 
-  console.log(booking);
+  // console.log(booking);
   if (!booking) {
     throw new Error(
       "Booking not found or you're not authorized to cancel this booking.",
     );
   }
 
-  if (booking.status === "canceled") {
+  if (booking.status === "Cancelled") {
     throw new Error("This booking has already been cancelled.");
   }
 
-  booking.status = "canceled";
+  booking.status = "Cancelled";
+  await booking.save();
+
+  return booking;
+};
+
+exports.submitFeedback = async ({ bookingId, userId, feedback }) => {
+  const booking = await Booking.findOne({
+    where: { id: bookingId, user_id: userId },
+  });
+
+  if (!booking) {
+    throwCustomError("Booking not found or not accessible", 404);
+  }
+
+  if (booking.feedback) {
+    throwCustomError("Feedback already submitted for this booking", 400);
+  }
+
+  booking.feedback = feedback;
+
   await booking.save();
 
   return booking;

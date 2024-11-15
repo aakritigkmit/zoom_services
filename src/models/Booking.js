@@ -60,7 +60,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: "Pending",
       },
-
       fare: {
         type: DataTypes.INTEGER,
         allowNull: false,
