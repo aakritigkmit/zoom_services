@@ -34,8 +34,15 @@ module.exports = {
         allowNull: false,
       },
       status: {
-        type: Sequelize.ENUM("picked_up", "dropped_off", "cancelled"),
+        type: Sequelize.ENUM(
+          "Pending",
+          "Confirmed",
+          "picked_up",
+          "dropped_off",
+          "Cancelled",
+        ),
         allowNull: true,
+        defaultValue: "Pending",
       },
       drop_off_time: {
         type: Sequelize.DATE,
@@ -48,6 +55,10 @@ module.exports = {
       estimated_distance: {
         type: Sequelize.INTEGER,
         allowNull: false,
+      },
+      feedback: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,

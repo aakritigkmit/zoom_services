@@ -50,13 +50,24 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
       },
       status: {
-        type: DataTypes.ENUM("picked_up", "dropped_off", "canceled"),
+        type: DataTypes.ENUM(
+          "Pending",
+          "Confirmed",
+          "picked_up",
+          "dropped_off",
+          "Cancelled",
+        ),
         allowNull: true,
+        defaultValue: "Pending",
       },
 
       fare: {
         type: DataTypes.INTEGER,
         allowNull: false,
+      },
+      feedback: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       estimated_distance: {
         type: DataTypes.INTEGER,
