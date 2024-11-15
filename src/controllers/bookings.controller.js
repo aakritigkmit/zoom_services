@@ -1,5 +1,9 @@
 const { StatusCodes } = require("http-status-codes");
 const bookingService = require("../services/bookings.service");
+const {
+  responseHandler,
+  throwCustomError,
+} = require("../helpers/common.helper");
 
 exports.createBooking = async (req, res) => {
   try {
@@ -29,5 +33,25 @@ exports.fetchByBookingId = async (req, res) => {
     res.status(StatusCodes.OK).json({ booking });
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+  }
+};
+
+exports.cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    console.log("userId", userId);
+
+    const canceledBooking = await bookingService.cancelBooking(id, userId);
+
+    return responseHandler(
+      res,
+      200,
+      "Booking cancelled successfully.",
+      canceledBooking,
+    );
+  } catch (error) {
+    console.log(error);
+    return throwCustomError(res, 400, error.message);
   }
 };
