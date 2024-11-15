@@ -37,6 +37,10 @@ module.exports = {
         type: Sequelize.ENUM("picked_up", "dropped_off", "cancelled"),
         allowNull: false,
       },
+      drop_off_time: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       fare: {
         type: Sequelize.INTEGER,
         allowNull: false,

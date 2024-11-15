@@ -45,15 +45,20 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      drop_off_time: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
       status: {
         type: DataTypes.ENUM("picked_up", "dropped_off", "canceled"),
         allowNull: false,
       },
+
       fare: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      distance_estimate: {
+      estimated_distance: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
