@@ -17,4 +17,44 @@ const generate = async (req, res) => {
   }
 };
 
-module.exports = { generate };
+const fetchAll = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, ...filters } = req.query;
+
+    const result = await transactionService.getAll(filters, page, limit);
+
+    // res.data = result;
+    res.statusCode = 200;
+    responseHandler(res, result);
+  } catch (error) {
+    console.error(error);
+
+    if (error.statusCode) {
+      errorHandler(res, error.message, error.statusCode);
+    } else {
+      errorHandler(res, "Transaction not found", 404);
+    }
+  }
+};
+
+const fetchById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const transaction = await transactionService.getById(id);
+
+    // res.data = transaction;
+    res.statusCode = 200;
+    responseHandler(res, transaction);
+  } catch (error) {
+    console.error(error);
+
+    if (error.statusCode) {
+      errorHandler(res, error.message, error.statusCode);
+    } else {
+      errorHandler(res, "Transaction not found", 404);
+    }
+  }
+};
+
+module.exports = { generate, fetchAll, fetchById };

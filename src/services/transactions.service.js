@@ -83,4 +83,68 @@ const create = async (data) => {
   }
 };
 
-module.exports = { create };
+const getAll = async (filters, page = 1, limit = 10) => {
+  const whereConditions = {};
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (Object.keys(Transaction.rawAttributes).includes(key)) {
+      whereConditions[key] = { [Op.eq]: value };
+    }
+  }
+
+  const offset = (page - 1) * limit;
+
+  const { count, rows } = await Transaction.findAndCountAll({
+    where: whereConditions,
+    include: [
+      {
+        model: Booking,
+        as: "booking",
+        include: [
+          { model: Car, as: "car" },
+          { model: User, as: "user" },
+        ],
+      },
+    ],
+    offset,
+    limit: parseInt(limit),
+    order: [["created_at", "DESC"]],
+  });
+
+  return {
+    data: rows,
+    pagination: {
+      totalItems: count,
+      currentPage: parseInt(page),
+      itemsPerPage: parseInt(limit),
+      totalPages: Math.ceil(count / limit),
+    },
+  };
+};
+
+const getById = async (id) => {
+  const transaction = await Transaction.findOne({
+    where: { id },
+    include: [
+      {
+        model: Booking,
+        as: "booking",
+        include: [
+          {
+            model: Car,
+            as: "car",
+            include: [{ model: User, as: "user" }],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!transaction) {
+    throwCustomError("Transaction not found", 404);
+  }
+
+  return transaction;
+};
+
+module.exports = { create, getAll, getById };
