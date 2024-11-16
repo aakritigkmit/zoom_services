@@ -57,4 +57,18 @@ const fetchById = async (req, res) => {
   }
 };
 
-module.exports = { generate, fetchAll, fetchById };
+const remove = async (req, res) => {
+  try {
+    await transactionService.remove(req.params.id);
+    res.data = {
+      message: "Transaction deleted successfully!",
+    };
+    res.statusCode = 204;
+    responseHandler(res);
+  } catch (error) {
+    console.log(error);
+    errorHandler(res, error.message, 404);
+  }
+};
+
+module.exports = { generate, fetchAll, fetchById, remove };
