@@ -12,6 +12,25 @@ router.post(
   bookingController.createBooking,
 );
 
+router.get(
+  "/summary",
+  authenticate,
+  checkRole(["Admin"]),
+  bookingController.monthlySummary,
+);
+router.get(
+  "/details",
+  authenticate,
+  checkRole(["Admin"]),
+  bookingController.getBookings,
+);
+router.get(
+  "/download",
+  authenticate,
+  checkRole(["Admin"]),
+  bookingController.downloadMonthlyBookings,
+);
+
 router.get("/:id", authenticate, bookingController.fetchByBookingId);
 router.patch("/:id/cancel", authenticate, bookingController.cancelBooking);
 

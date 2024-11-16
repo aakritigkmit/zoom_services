@@ -1,6 +1,7 @@
 const { Booking, Car, User } = require("../models");
 const { calculateBookingFare } = require("../helpers/calculateFares.helper");
-
+const sequelize = require("sequelize");
+const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 
 exports.createBooking = async (data) => {
@@ -37,8 +38,9 @@ exports.fetchByBookingId = async (id) => {
 };
 
 exports.cancelBooking = async (bookingId, userId) => {
-  console.log("bookingId", bookingId);
-  console.log("userId", userId);
+  // console.log("bookingId", bookingId);
+  // console.log("userId", userId);
+
   const booking = await Booking.findOne({
     where: {
       id: bookingId,
@@ -82,4 +84,87 @@ exports.submitFeedback = async ({ bookingId, userId, feedback }) => {
   await booking.save();
 
   return booking;
+};
+
+exports.monthlySummary = async (year = new Date().getFullYear()) => {
+  const summary = await Booking.findAll({
+    attributes: [
+      [
+        sequelize.fn("EXTRACT", sequelize.literal("MONTH FROM created_at")),
+        "month",
+      ],
+      [sequelize.fn("SUM", sequelize.col("fare")), "total_revenue"],
+      [sequelize.fn("COUNT", sequelize.col("id")), "total_bookings"],
+    ],
+    where: sequelize.where(
+      sequelize.fn("EXTRACT", sequelize.literal("YEAR FROM created_at")),
+      year,
+    ),
+    group: [
+      sequelize.fn("EXTRACT", sequelize.literal("MONTH FROM created_at")),
+    ],
+    order: [
+      [
+        sequelize.fn("EXTRACT", sequelize.literal("MONTH FROM created_at")),
+        "ASC",
+      ],
+    ],
+  });
+
+  return summary;
+};
+
+exports.getBookingDetails = async (month, year) => {
+  const bookings = await Booking.findAll({
+    where: sequelize.and(
+      sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal('MONTH FROM "start_date"')),
+        month,
+      ),
+      sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal('YEAR FROM "start_date"')),
+        year,
+      ),
+    ),
+    include: [
+      { model: Car, as: "car", attributes: ["model", "type"] },
+      { model: User, as: "user", attributes: ["name", "email"] },
+    ],
+  });
+
+  return bookings;
+};
+
+exports.downloadMonthlyBookings = async ({ month, year }) => {
+  const whereConditions = {};
+
+  if (month) {
+    whereConditions[sequelize.fn("MONTH", sequelize.col("created_at"))] = month;
+  }
+  if (year) {
+    whereConditions[sequelize.fn("YEAR", sequelize.col("created_at"))] = year;
+  }
+
+  const bookings = await Booking.findAll({
+    where: whereConditions,
+    attributes: [
+      "id",
+      "user_id",
+      "car_id",
+      "start_date",
+      "end_date",
+      "status",
+      "fare",
+      "feedback",
+      "estimated_distance",
+    ],
+  });
+
+  if (!bookings || bookings.length === 0) {
+    throwCustomError("No bookings found for the specified criteria", 404);
+  }
+
+  const json2csvParser = new Parser();
+  const csvData = json2csvParser.parse(bookings.map((b) => b.toJSON()));
+  return csvData;
 };

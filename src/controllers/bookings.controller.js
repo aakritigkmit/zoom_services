@@ -1,13 +1,17 @@
 const { StatusCodes } = require("http-status-codes");
 const bookingService = require("../services/bookings.service");
-const { throwCustomError, errorHandler } = require("../helpers/common.helper");
+const {
+  throwCustomError,
+  errorHandler,
+  responseHandler,
+} = require("../helpers/common.helper");
 const { Booking } = require("../models");
 
 exports.createBooking = async (req, res) => {
   try {
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
     const newBooking = await bookingService.createBooking(req.body);
-    console.log("newBooking", newBooking);
+    // console.log("newBooking", newBooking);
     res.status(StatusCodes.CREATED).json({
       message: "Booking created successfully",
       booking: newBooking,
@@ -81,6 +85,59 @@ exports.submitFeedback = async (req, res, next) => {
       message: "Feedback submitted successfully",
       data: result,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.monthlySummary = async (req, res) => {
+  try {
+    const { year = new Date().getFullYear() } = req.query;
+    console.log("year", year);
+
+    const result = await bookingService.monthlySummary(year);
+    res.status(StatusCodes.OK).json({
+      message: "Retrieved  monthly data successfully",
+      data: result,
+    });
+  } catch (error) {
+    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+  }
+};
+
+exports.getBookings = async (req, res) => {
+  try {
+    const { month, year } = req.query;
+
+    if (!month || !year || isNaN(month) || isNaN(year)) {
+      return responseHandler(
+        res,
+        400,
+        "Invalid or missing month and year values",
+      );
+    }
+
+    const bookings = await bookingService.getBookingDetails(month, year);
+    return res.status(200).json({
+      status: 200,
+      message: `Bookings for ${month}/${year}`,
+      data: bookings,
+    });
+  } catch (error) {
+    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+  }
+};
+
+exports.downloadMonthlyBookings = async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+    const csvData = await bookingService.downloadMonthlyBookings({
+      month,
+      year,
+    });
+    res.header("Content-Type", "text/csv");
+    res.attachment(`bookings_${month || "all"}_${year || "all"}.csv`);
+    res.send(csvData);
   } catch (error) {
     next(error);
   }
