@@ -1,14 +1,17 @@
 const dotenv = require("dotenv");
 dotenv.config();
+
 const express = require("express");
 const { sequelize } = require("./src/models");
 const { connectToRedis } = require("./src/config/redis");
 const { registerRoutes } = require("./src/routes/index.js");
-
 const app = express();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 registerRoutes(app);
+
 const connectDb = async function () {
   try {
     await sequelize.authenticate();
@@ -26,7 +29,6 @@ app.get("/", (req, res) => {
   res.send("Hello world");
 });
 
-// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
