@@ -4,6 +4,7 @@ const validateRequest = require("../middlewares/validator.middleware");
 const bookingController = require("../controllers/bookings.controller");
 const { createBookingSchema } = require("../validators/bookings.validator");
 const { authenticate } = require("../middlewares/auth.middleware");
+const checkRole = require("../middlewares/roles.middleware");
 
 router.post(
   "/",
@@ -27,7 +28,7 @@ router.get(
 router.get(
   "/download",
   authenticate,
-  checkRole(["Admin"]),
+  checkRole(["Car Owner", "Admin"]),
   bookingController.downloadMonthlyBookings,
 );
 
