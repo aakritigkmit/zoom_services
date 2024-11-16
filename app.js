@@ -5,6 +5,7 @@ const express = require("express");
 const { sequelize } = require("./src/models");
 const { connectToRedis } = require("./src/config/redis");
 const { registerRoutes } = require("./src/routes/index.js");
+
 const app = express();
 
 app.use(express.json());
@@ -21,7 +22,6 @@ const connectDb = async function () {
   }
 };
 
-// app.use;
 connectDb();
 connectToRedis();
 
