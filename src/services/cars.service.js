@@ -1,55 +1,64 @@
-const { Car } = require("../models");
+const { Car, sequelize } = require("../models");
 
 const { client } = require("../config/redis");
 const { StatusCodes } = require("http-status-codes");
 const { throwCustomError } = require("../helpers/common.helper.js");
 
-exports.createCar = async (carData, ownerId, imagePath) => {
-  const cleanCarData = { ...carData };
-  console.log("cleanCarData", cleanCarData);
-  const latitude = parseFloat(carData.latitude);
-  const longitude = parseFloat(carData.longitude);
-  const pricePerKm = parseFloat(carData.price_per_km);
-  const pricePerHr = parseFloat(carData.price_per_hr);
-  const year = parseInt(carData.year, 10);
+const createCar = async (carData, ownerId, imagePath) => {
+  const t = await sequelize.transaction();
 
-  const newCar = await Car.create({
-    ...cleanCarData,
-    user_id: ownerId,
-    image: imagePath,
-    latitude,
-    longitude,
-    price_per_km: pricePerKm,
-    price_per_hr: pricePerHr,
-    year,
-  });
+  try {
+    const cleanCarData = { ...carData };
+    // console.log("cleanCarData", cleanCarData);
+    const latitude = parseFloat(carData.latitude);
+    const longitude = parseFloat(carData.longitude);
+    const pricePerKm = parseFloat(carData.price_per_km);
+    const pricePerHr = parseFloat(carData.price_per_hr);
+    const year = parseInt(carData.year, 10);
 
-  console.log("newCar", newCar);
-  const carId = newCar.id;
+    const newCar = await Car.create({
+      ...cleanCarData,
+      user_id: ownerId,
+      image: imagePath,
+      latitude,
+      longitude,
+      price_per_km: pricePerKm,
+      price_per_hr: pricePerHr,
+      year,
+    });
 
-  if (isNaN(latitude) || isNaN(longitude)) {
-    throw new Error("Latitude and longitude must be valid numbers.");
+    console.log("newCar", newCar);
+    const carId = newCar.id;
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      throw new Error("Latitude and longitude must be valid numbers.");
+    }
+
+    if (!client) {
+      throw new Error("Redis client is not initialized.");
+    }
+    if (!latitude || !longitude) {
+      throw new Error("Latitude and longitude are required for geolocation.");
+    }
+
+    await client.sendCommand([
+      "GEOADD",
+      "cars:locations",
+      longitude.toString(),
+      latitude.toString(),
+      carId.toString(),
+    ]);
+
+    await t.commit();
+
+    return newCar;
+  } catch (error) {
+    await t.rollback();
+    throw error;
   }
-
-  if (!client) {
-    throw new Error("Redis client is not initialized.");
-  }
-  if (!latitude || !longitude) {
-    throw new Error("Latitude and longitude are required for geolocation.");
-  }
-
-  await client.sendCommand([
-    "GEOADD",
-    "cars:locations",
-    longitude.toString(),
-    latitude.toString(),
-    carId.toString(),
-  ]);
-
-  return newCar;
 };
 
-exports.findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
+const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
   try {
     // const searchRadius = radius || 10;
 
@@ -82,42 +91,63 @@ exports.findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
   }
 };
 
-exports.fetchByCarId = async (id) => {
+const fetchByCarId = async (id) => {
   return await Car.findByPk(id);
 };
 
-exports.updateCarDetails = async (carId, updatedData, userId) => {
-  const car = await Car.findByPk(carId);
-  // console.log("car", car);
-  if (userId !== car.user_id) {
-    return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
-  }
+const updateCarDetails = async (carId, updatedData, userId) => {
+  const t = await sequelize.transaction();
+  try {
+    const car = await Car.findByPk(carId, { transaction: t });
 
-  if (!car) {
-    throw new Error("Car not found");
+    if (!car) {
+      throw new Error("Car not found");
+    }
+
+    if (userId !== car.user_id) {
+      throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
+
+    await car.update(updatedData, { transaction: t });
+
+    await t.commit();
+
+    return car;
+  } catch (error) {
+    await t.rollback();
+    throw error;
   }
-  await car.update(updatedData);
-  return car;
 };
 
-exports.updateCarStatus = async (carId, status, userId) => {
-  console.log(userId);
-  const car = await Car.findByPk(carId);
-  console.log("car", car);
-  if (userId !== car.user_id) {
-    return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
-  }
-  console.log("userId updated", userId);
-  console.log("car.user_id updated", car.user_id);
+const updateCarStatus = async (carId, status, userId) => {
+  const t = await sequelize.transaction();
 
-  if (!car) {
-    throw new Error("Car not found");
+  try {
+    const car = await Car.findByPk(carId, { transaction: t });
+    if (!car) {
+      throw new Error("Car not found");
+    }
+
+    if (car.user_id !== userId) {
+      throwCustomError(
+        "Forbidden: You don't have permission to update this car's status.",
+        StatusCodes.FORBIDDEN,
+      );
+    }
+
+    car.status = status;
+
+    await car.save({ transaction: t });
+
+    await t.commit();
+
+    return car;
+  } catch (error) {
+    await t.rollback();
+    throw error;
   }
-  await car.update({ status });
-  return car;
 };
-
-exports.removeCar = async (carId) => {
+const removeCar = async (carId) => {
   const car = await Car.findByPk(carId);
   if (!car) {
     return null;
@@ -125,4 +155,13 @@ exports.removeCar = async (carId) => {
 
   await car.destroy();
   return car;
+};
+
+module.exports = {
+  removeCar,
+  updateCarStatus,
+  updateCarDetails,
+  fetchByCarId,
+  findNearestCars,
+  createCar,
 };
