@@ -33,6 +33,14 @@ router.get(
 );
 
 router.get("/:id", authenticate, bookingController.fetchByBookingId);
+
+router.put(
+  "/:id",
+  authenticate,
+  checkRole(["Admin", "Car Owner"]),
+  bookingController.updateBookingDetails,
+);
+
 router.patch("/:id/cancel", authenticate, bookingController.cancelBooking);
 
 router.post("/:id/feedback", authenticate, bookingController.submitFeedback);
