@@ -7,7 +7,7 @@ const {
 } = require("../helpers/common.helper");
 const { Booking } = require("../models");
 
-exports.createBooking = async (req, res) => {
+const createBooking = async (req, res) => {
   try {
     // console.log("req.body", req.body);
     const newBooking = await bookingService.createBooking(req.body);
@@ -21,7 +21,7 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-exports.fetchByBookingId = async (req, res) => {
+const fetchByBookingId = async (req, res) => {
   const bookingId = req.params.id;
   try {
     const booking = await bookingService.fetchByBookingId(bookingId);
@@ -36,7 +36,7 @@ exports.fetchByBookingId = async (req, res) => {
   }
 };
 
-exports.cancelBooking = async (req, res) => {
+const cancelBooking = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -60,7 +60,27 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
-exports.submitFeedback = async (req, res, next) => {
+const updateBookingDetails = async (req, res) => {
+  const { id } = req.params;
+  console.log("bookingId from params");
+  const updatedData = req.body;
+  const userId = req.user.id;
+
+  try {
+    const updatedBooking = await bookingService.updateBooking(
+      id,
+      updatedData,
+      userId,
+    );
+
+    responseHandler(res, updatedBooking, "Booking updated successfully");
+  } catch (error) {
+    console.error(error);
+    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+  }
+};
+
+const submitFeedback = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
 
@@ -90,12 +110,13 @@ exports.submitFeedback = async (req, res, next) => {
   }
 };
 
-exports.monthlySummary = async (req, res) => {
+const monthlySummary = async (req, res) => {
   try {
+    const { page, pageSize } = req.query;
     const { year = new Date().getFullYear() } = req.query;
     console.log("year", year);
 
-    const result = await bookingService.monthlySummary(year);
+    const result = await bookingService.monthlySummary(year, page, pageSize);
     res.status(StatusCodes.OK).json({
       message: "Retrieved  monthly data successfully",
       data: result,
@@ -105,7 +126,7 @@ exports.monthlySummary = async (req, res) => {
   }
 };
 
-exports.getBookings = async (req, res) => {
+const getBookings = async (req, res) => {
   try {
     const { month, year } = req.query;
 
@@ -128,7 +149,7 @@ exports.getBookings = async (req, res) => {
   }
 };
 
-exports.downloadMonthlyBookings = async (req, res, next) => {
+const downloadMonthlyBookings = async (req, res, next) => {
   try {
     const { month, year } = req.query;
     const csvData = await bookingService.downloadMonthlyBookings({
@@ -141,4 +162,15 @@ exports.downloadMonthlyBookings = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+module.exports = {
+  downloadMonthlyBookings,
+  createBooking,
+  fetchByBookingId,
+  cancelBooking,
+  updateBookingDetails,
+  submitFeedback,
+  monthlySummary,
+  getBookings,
 };
