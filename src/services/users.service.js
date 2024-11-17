@@ -2,14 +2,7 @@ const { User, Role } = require("../models");
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
-exports.createUser = async (
-  name,
-  email,
-  phoneNumber,
-  password,
-  roles,
-  city,
-) => {
+const createUser = async (name, email, phoneNumber, password, roles, city) => {
   const userExists = await User.findOne({ where: { email } });
   if (userExists) {
     throw new Error("User already exists");
@@ -37,7 +30,7 @@ exports.createUser = async (
   return newUser;
 };
 
-exports.fetchUsers = async () => {
+const fetchUsers = async () => {
   const users = await User.findAll({
     include: {
       model: Role,
@@ -55,7 +48,7 @@ exports.fetchUsers = async () => {
   return formattedUsers;
 };
 
-exports.fetchById = async (id, reqUser) => {
+const fetchById = async (id, reqUser) => {
   const user = await User.findOne({
     where: { id },
     include: {
@@ -80,7 +73,7 @@ exports.fetchById = async (id, reqUser) => {
   return { user };
 };
 
-exports.editUserDetails = async (userId, updateData) => {
+const editUserDetails = async (userId, updateData) => {
   if (updateData.password) {
     updateData.password = await bcrypt.hash(updateData.password, 10);
   }
@@ -94,7 +87,7 @@ exports.editUserDetails = async (userId, updateData) => {
   return updatedUser;
 };
 
-exports.fetchAllBookingsForUser = (userId) => {
+const fetchAllBookingsForUser = (userId) => {
   return Booking.findAll({
     where: {
       user_id: userId,
@@ -110,7 +103,7 @@ exports.fetchAllBookingsForUser = (userId) => {
   });
 };
 
-exports.removeUser = async (id) => {
+const removeUser = async (id) => {
   const user = await User.findByPk(id);
 
   if (!user) {
@@ -120,4 +113,13 @@ exports.removeUser = async (id) => {
   await user.destroy();
 
   return { message: "User deleted successfully" };
+};
+
+module.exports = {
+  createUser,
+  fetchUsers,
+  removeUser,
+  fetchAllBookingsForUser,
+  editUserDetails,
+  fetchById,
 };

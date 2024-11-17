@@ -8,7 +8,7 @@ const {
   throwCustomError,
 } = require("../helpers/common.helper.js");
 
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   const { name, email, phoneNumber, password, roles, city } = req.body;
 
   try {
@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.fetchUser = async (req, res) => {
+const fetchUser = async (req, res) => {
   try {
     if (!req.user || !req.user.roles.some((role) => role.name === "Admin")) {
       return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
@@ -45,7 +45,7 @@ exports.fetchUser = async (req, res) => {
   }
 };
 
-exports.fetchById = async (req, res) => {
+const fetchById = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -62,7 +62,7 @@ exports.fetchById = async (req, res) => {
   }
 };
 
-exports.editUserDetails = async (req, res) => {
+const editUserDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -85,7 +85,7 @@ exports.editUserDetails = async (req, res) => {
   }
 };
 
-exports.removeUser = async (req, res) => {
+const removeUser = async (req, res) => {
   try {
     const { id } = req.params;
     // Admins can delete any user, but users can only delete their own profile
@@ -107,7 +107,7 @@ exports.removeUser = async (req, res) => {
   }
 };
 
-exports.fetchAllBookingsForUser = async (req, res) => {
+const fetchAllBookingsForUser = async (req, res) => {
   const userId = req.user.id;
   console.log("userId", userId);
 
@@ -128,4 +128,13 @@ exports.fetchAllBookingsForUser = async (req, res) => {
       error: error.message,
     });
   }
+};
+
+module.exports = {
+  fetchAllBookingsForUser,
+  removeUser,
+  editUserDetails,
+  fetchById,
+  fetchUser,
+  register,
 };
