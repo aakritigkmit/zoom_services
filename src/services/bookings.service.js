@@ -5,32 +5,40 @@ const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 
 exports.createBooking = async (data) => {
-  const car = await Car.findByPk(data.car_id);
-  if (!car) {
-    throw new Error("Car not found");
+  const rollBack = await sequelize.transaction();
+  try {
+    const car = await Car.findByPk(data.car_id);
+    if (!car) {
+      throw new Error("Car not found");
+    }
+
+    const existingBooking = await Booking.findOne({
+      where: {
+        user_id: data.user_id,
+        car_id: data.car_id,
+      },
+    });
+
+    if (existingBooking) {
+      throw new Error("You already have an active booking for this car.");
+    }
+
+    const totalFare = calculateBookingFare(
+      car,
+      data.estimated_distance,
+      data.start_date,
+      data.end_date,
+    );
+
+    const bookingData = { ...data, fare: totalFare };
+
+    await rollBack.commit();
+
+    return await Booking.create(bookingData);
+  } catch (error) {
+    await rollBack.rollback();
+    throw error;
   }
-
-  const existingBooking = await Booking.findOne({
-    where: {
-      user_id: data.user_id,
-      car_id: data.car_id,
-    },
-  });
-
-  if (existingBooking) {
-    throw new Error("You already have an active booking for this car.");
-  }
-
-  const totalFare = calculateBookingFare(
-    car,
-    data.estimated_distance,
-    data.start_date,
-    data.end_date,
-  );
-
-  const bookingData = { ...data, fare: totalFare };
-
-  return await Booking.create(bookingData);
 };
 
 exports.fetchByBookingId = async (id) => {
@@ -114,7 +122,8 @@ exports.monthlySummary = async (year = new Date().getFullYear()) => {
   return summary;
 };
 
-exports.getBookingDetails = async (month, year) => {
+exports.getBookingDetails = async (month, year, page = 1, pageSize = 10) => {
+  const offset = (page - 1) * pageSize;
   const bookings = await Booking.findAll({
     where: sequelize.and(
       sequelize.where(
@@ -130,13 +139,23 @@ exports.getBookingDetails = async (month, year) => {
       { model: Car, as: "car", attributes: ["model", "type"] },
       { model: User, as: "user", attributes: ["name", "email"] },
     ],
+    order: [["start_date", "DESC"]],
+    limit: pageSize,
+    offset,
   });
 
-  return bookings;
+  return {
+    totalBookings: count,
+    currentPage: page,
+    totalPages: Math.ceil(count / pageSize),
+    bookings,
+  };
 };
 
-exports.fetchAllBookingsForUser = (userId) => {
-  return Booking.findAll({
+exports.fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
+  const offset = (page - 1) * pageSize;
+
+  const { count, rows: bookings } = await Booking.findAndCountAll({
     where: {
       user_id: userId,
     },
@@ -148,7 +167,16 @@ exports.fetchAllBookingsForUser = (userId) => {
       },
     ],
     order: [["start_date", "DESC"]],
+    limit: pageSize,
+    offset,
   });
+
+  return {
+    totalBookings: count,
+    currentPage: page,
+    totalPages: Math.ceil(count / pageSize),
+    bookings,
+  };
 };
 
 exports.downloadMonthlyBookings = async ({ month, year }) => {

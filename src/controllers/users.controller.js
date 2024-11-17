@@ -34,11 +34,12 @@ const register = async (req, res) => {
 
 const fetchUser = async (req, res) => {
   try {
+    const { page, pageSize } = req.query;
     if (!req.user || !req.user.roles.some((role) => role.name === "Admin")) {
       return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
 
-    const users = await userService.fetchUsers();
+    const users = await userService.fetchUsers(page, pageSize);
     responseHandler(res, users, "Users fetched successfully");
   } catch (error) {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
@@ -112,7 +113,12 @@ const fetchAllBookingsForUser = async (req, res) => {
   console.log("userId", userId);
 
   try {
-    const bookings = await bookingService.fetchAllBookingsForUser(userId);
+    const { page = 1, pageSize = 10 } = req.query;
+    const bookings = await bookingService.fetchAllBookingsForUser(
+      userId,
+      parseInt(page),
+      parseInt(pageSize),
+    );
 
     if (bookings.length === 0) {
       return res
