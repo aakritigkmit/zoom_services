@@ -1,4 +1,5 @@
 const userService = require("../services/users.service");
+const bookingService = require("../services/bookings.service");
 const { StatusCodes } = require("http-status-codes");
 
 const {
@@ -103,5 +104,28 @@ exports.removeUser = async (req, res) => {
     responseHandler(res, null, "User deleted successfully");
   } catch (error) {
     errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+  }
+};
+
+exports.fetchAllBookingsForUser = async (req, res) => {
+  const userId = req.user.id;
+  console.log("userId", userId);
+
+  try {
+    const bookings = await bookingService.fetchAllBookingsForUser(userId);
+
+    if (bookings.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No bookings found for this user" });
+    }
+
+    res.status(200).json({ bookings });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "An error occurred while fetching bookings",
+      error: error.message,
+    });
   }
 };

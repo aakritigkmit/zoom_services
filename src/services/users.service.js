@@ -94,6 +94,22 @@ exports.editUserDetails = async (userId, updateData) => {
   return updatedUser;
 };
 
+exports.fetchAllBookingsForUser = (userId) => {
+  return Booking.findAll({
+    where: {
+      user_id: userId,
+    },
+    include: [
+      {
+        model: Car,
+        as: "car",
+        attributes: ["id", "model", "year", "fuel_type", "city", "status"],
+      },
+    ],
+    order: [["start_date", "DESC"]],
+  });
+};
+
 exports.removeUser = async (id) => {
   const user = await User.findByPk(id);
 

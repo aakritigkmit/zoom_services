@@ -135,6 +135,22 @@ exports.getBookingDetails = async (month, year) => {
   return bookings;
 };
 
+exports.fetchAllBookingsForUser = (userId) => {
+  return Booking.findAll({
+    where: {
+      user_id: userId,
+    },
+    include: [
+      {
+        model: Car,
+        as: "car",
+        attributes: ["id", "model", "year", "fuel_type", "city", "status"],
+      },
+    ],
+    order: [["start_date", "DESC"]],
+  });
+};
+
 exports.downloadMonthlyBookings = async ({ month, year }) => {
   const whereConditions = {};
 
