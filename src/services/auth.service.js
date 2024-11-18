@@ -7,7 +7,7 @@ const { sendOtpEmail } = require("../utils/email");
 const { User } = require("../models");
 const { Role } = require("../models");
 
-exports.sendOtp = async (email) => {
+const sendOtp = async (email) => {
   const otp = generateOtp();
   await client.setEx(`otp:${email}`, 300, otp);
   console.log(otp);
@@ -16,36 +16,30 @@ exports.sendOtp = async (email) => {
   return otp;
 };
 
-exports.verifyOtp = async (email, otp) => {
-  console.log("Verifying OTP for:", email);
+const verifyOtp = async (email, otp) => {
+  // console.log("Verifying OTP for:", email);
   console.log("Received OTP:", otp);
 
-  // Retrieve the stored OTP from Redis
   const storedOtp = await client.get(`otp:${email}`);
 
-  // Log the stored OTP and comparison result
-  console.log("Stored OTP from Redis:", storedOtp);
-  console.log("Stored OTP === Received OTP:", storedOtp === otp);
+  // console.log("Stored OTP from Redis:", storedOtp);
+  // console.log("Stored OTP === Received OTP:", storedOtp === otp);
 
-  // Check if the OTP exists and matches
   if (storedOtp && storedOtp === otp) {
-    // Delete the OTP from Redis after successful verification
     await client.del(`otp:${email}`);
-    console.log("OTP verified successfully. Deleting stored OTP.");
+    // console.log("OTP verified successfully. Deleting stored OTP.");
 
-    // Set email verification flag
     await client.setEx(`verified:${email}`, 300, "true");
-    console.log(`Email verification set for: ${email}`);
+    // console.log(`Email verification set for: ${email}`);
 
     return true;
   }
 
-  // If OTP is invalid or expired
-  console.log("OTP verification failed for:", email);
+  // console.log("OTP verification failed for:", email);
   return false;
 };
 
-exports.registerUser = async (
+const registerUser = async (
   name,
   email,
   phoneNumber,
@@ -94,8 +88,7 @@ exports.registerUser = async (
     };
   }
 };
-
-exports.login = async (email, password) => {
+const login = async (email, password) => {
   try {
     const user = await User.findOne({
       where: { email },
@@ -115,4 +108,11 @@ exports.login = async (email, password) => {
       message: error.message || "An error occurred during login.",
     };
   }
+};
+
+module.exports = {
+  login,
+  verifyOtp,
+  sendOtp,
+  registerUser,
 };

@@ -3,7 +3,7 @@ const authService = require("../services/auth.service");
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
 const { blacklistToken } = require("../helpers/jwt.helper");
 
-exports.sendOtp = async (req, res) => {
+const sendOtp = async (req, res) => {
   try {
     const otp = await authService.sendOtp(req.body.email);
     responseHandler(res, { otp }, "OTP sent successfully");
@@ -13,7 +13,7 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
-exports.verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const isValid = await authService.verifyOtp(email, otp);
@@ -26,7 +26,7 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   console.log("Request body:", req.body);
   const { name, email, phoneNumber, password, roleName, city } = req.body;
 
@@ -50,7 +50,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const token = await authService.login(email, password);
@@ -60,8 +60,8 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.logout = async (req, res) => {
-  const token = req.headers["authorization"]?.replace("Bearer ", "");
+const logout = async (req, res) => {
+  const token = req.headers["authorization"]?.split(" ")[1];
   console.log(token);
   if (!token) {
     return errorHandler(res, "Token not provided", 401);
@@ -74,4 +74,12 @@ exports.logout = async (req, res) => {
     console.error("Logout error:", error.message);
     errorHandler(res, "Failed to logout", 400);
   }
+};
+
+module.exports = {
+  logout,
+  login,
+  register,
+  verifyOtp,
+  sendOtp,
 };
