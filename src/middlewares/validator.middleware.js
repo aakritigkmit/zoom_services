@@ -1,3 +1,5 @@
+const { errorHandler } = require("../../src/helpers/common.helper");
+
 function validateRequest(schema, params = false) {
   return (req, res, next) => {
     const { error } = params
@@ -10,7 +12,7 @@ function validateRequest(schema, params = false) {
         path: detail.path,
       }));
 
-      return errorHandler(res, errorMessage, 400);
+      return errorHandler(res, error, errorMessage, 400);
     }
 
     next();
