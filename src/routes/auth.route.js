@@ -1,10 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
-const {
-  authenticate,
-  isTokenBlacklisted,
-} = require("../middlewares/auth.middleware");
+const { authenticate } = require("../middlewares/auth.middleware");
 const validateRequest = require("../middlewares/validator.middleware");
 
 const {
