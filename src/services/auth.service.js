@@ -39,15 +39,9 @@ const verifyOtp = async (email, otp) => {
   return false;
 };
 
-const registerUser = async (
-  name,
-  email,
-  phoneNumber,
-  password,
-  roleName,
-  city,
-) => {
+const registerUser = async (payload) => {
   try {
+    const { name, email, phoneNumber, password, roleName, city } = payload;
     const isVerified = await client.get(`verified:${email}`);
     console.log("Email verification status:", isVerified);
 

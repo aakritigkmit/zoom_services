@@ -35,17 +35,10 @@ const verifyOtp = async (req, res) => {
 };
 
 const register = async (req, res) => {
-  const { name, email, phoneNumber, password, roleName, city } = req.body;
+  const payload = req.body;
 
   try {
-    const newUser = await authService.registerUser(
-      name,
-      email,
-      phoneNumber,
-      password,
-      roleName,
-      city,
-    );
+    const newUser = await authService.registerUser(payload);
     responseHandler(
       res,
       { user: newUser },
