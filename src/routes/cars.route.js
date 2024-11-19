@@ -23,6 +23,7 @@ router.post(
 
 router.get("/", authenticate, carController.findNearestCars);
 router.get("/:id", authenticate, carController.fetchByCarId);
+router.get("/:id/bookings", authenticate, carController.fetchCarBookings);
 
 router.put(
   "/:id",

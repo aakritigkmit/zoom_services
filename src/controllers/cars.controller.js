@@ -20,6 +20,36 @@ const createCar = async (req, res) => {
   }
 };
 
+const fetchCarBookings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const carId = req.params.id;
+
+    console.log("user", userId);
+    console.log("car", carId);
+
+    const bookings = await carService.fetchCarBookings(userId, carId);
+
+    if (!bookings.length) {
+      return responseHandler(
+        res,
+        null,
+        "No bookings found for this car",
+        StatusCodes.NOT_FOUND,
+      );
+    }
+
+    return responseHandler(
+      res,
+      bookings,
+      "Bookings retrieved successfully",
+      StatusCodes.OK,
+    );
+  } catch (error) {
+    errorHandler(res, error, "Failed to fetch Bookings of the Car");
+  }
+};
+
 const findNearestCars = async (req, res) => {
   const { latitude, longitude, radius } = req.query;
 
@@ -118,4 +148,5 @@ module.exports = {
   update,
   updateCarStatus,
   removeCar,
+  fetchCarBookings,
 };

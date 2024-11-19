@@ -1,4 +1,4 @@
-const { Car, sequelize } = require("../models");
+const { Car, sequelize, Booking, User } = require("../models");
 const { Op } = require("sequelize");
 const { client } = require("../config/redis");
 const { StatusCodes } = require("http-status-codes");
@@ -56,6 +56,26 @@ const createCar = async (carData, ownerId, imagePath) => {
     await t.rollback();
     throw error;
   }
+};
+
+const fetchCarBookings = async (ownerId, carId) => {
+  const car = await Car.findOne({
+    where: { id: carId, user_id: ownerId },
+    attributes: ["id", "model", "type", "status"],
+  });
+
+  if (!car) {
+    throwCustomError("This car does not belong to you", 403);
+  }
+
+  // Fetch bookings for the specific car
+  const bookings = await Booking.findAll({
+    where: { car_id: car.id },
+    include: [{ model: User, as: "user", attributes: ["id", "name", "email"] }],
+    attributes: ["id", "start_date", "end_date", "status", "fare"],
+  });
+
+  return bookings;
 };
 
 const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
@@ -159,6 +179,7 @@ const updateCarStatus = async (carId, status, userId) => {
     throw error;
   }
 };
+
 const removeCar = async (carId) => {
   const car = await Car.findByPk(carId);
   if (!car) {
@@ -176,4 +197,5 @@ module.exports = {
   fetchByCarId,
   findNearestCars,
   createCar,
+  fetchCarBookings,
 };
