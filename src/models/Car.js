@@ -45,6 +45,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      chassis_number: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
       fuel_type: {
         type: DataTypes.ENUM("cng", "diesel", "petrol"),
         allowNull: false,
