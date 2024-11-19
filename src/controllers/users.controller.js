@@ -82,6 +82,7 @@ const editUserDetails = async (req, res) => {
 
     responseHandler(res, updatedUser, "User details updated successfully");
   } catch (error) {
+    console.log(error);
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };

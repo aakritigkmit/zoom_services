@@ -1,6 +1,6 @@
 const transactionService = require("../services/transactions.service");
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
-
+const { StatusCodes } = require("http-status-codes");
 const generate = async (req, res) => {
   try {
     const transaction = await transactionService.create(req.body);
