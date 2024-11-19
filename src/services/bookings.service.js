@@ -1,12 +1,12 @@
 const { Booking, Car, User, sequelize } = require("../models");
-const { calculateBookingFare } = require("../helpers/calculateFares.helper");
+const calculateBookingFare = require("../helpers/calculateFares.helper");
 const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
 const { sendEmail } = require("../utils/email");
 const moment = require("moment");
 
-const createBooking = async (data, email) => {
+const createBooking = async (data, email, userId) => {
   const rollBack = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
@@ -16,7 +16,7 @@ const createBooking = async (data, email) => {
 
     const existingBooking = await Booking.findOne({
       where: {
-        user_id: data.user_id,
+        user_id: userId,
         car_id: data.car_id,
       },
     });
@@ -32,7 +32,11 @@ const createBooking = async (data, email) => {
       data.end_date,
     );
 
-    const newBooking = await Booking.create({ ...data, fare: totalFare });
+    const newBooking = await Booking.create({
+      ...data,
+      fare: totalFare,
+      user_id: userId,
+    });
     console.log(newBooking);
     await rollBack.commit();
 
@@ -80,24 +84,19 @@ const updateBooking = async (bookingId, updatedData, userId) => {
 };
 
 const cancelBooking = async (bookingId, userId) => {
-  // console.log("bookingId", bookingId);
-  // console.log("userId", userId);
-
-  const booking = await Booking.findOne({
-    where: {
-      id: bookingId,
-      user_id: userId,
-    },
+  const booking = await Booking.findByPk(bookingId, {
     include: [{ model: User, as: "user", attributes: ["name", "email"] }],
   });
 
-  // console.log(booking);
+  console.log(booking);
   if (!booking) {
     throw new Error(
       "Booking not found or you're not authorized to cancel this booking.",
     );
   }
-
+  if (booking.user_id !== userId) {
+    throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+  }
   if (booking.status === "Cancelled") {
     throw new Error("This booking has already been cancelled.");
   }
@@ -262,7 +261,6 @@ const bookingScheduler = async () => {
     for (const booking of confirmedBookings) {
       const { id: bookingId, start_date, end_date, user } = booking;
 
-      // Reminder Logic
       const timeLeft = moment(start_date).diff(moment(), "hours");
       if (timeLeft > 0 && timeLeft <= 24) {
         console.log(`[Reminder] Booking ${bookingId}: ${timeLeft} hours left.`);
@@ -274,7 +272,6 @@ const bookingScheduler = async () => {
         );
       }
 
-      // Late Notification Logic
       if (moment(end_date).isBefore(now)) {
         console.log(`[Late] Booking ${bookingId}: Your ride is late.`);
 
@@ -284,7 +281,6 @@ const bookingScheduler = async () => {
           `Your booking with ID ${bookingId} is overdue. Please return the car immediately.`,
         );
 
-        // Optional: Update booking status to "Late"
         booking.status = "Late";
         await booking.save();
       }

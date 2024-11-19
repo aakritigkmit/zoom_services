@@ -5,22 +5,23 @@ const {
   errorHandler,
   responseHandler,
 } = require("../helpers/common.helper");
-const { Booking } = require("../models");
 
 const createBooking = async (req, res) => {
+  const userId = req.user.id;
   try {
-    // console.log("req.body", req.body);
     const newBooking = await bookingService.createBooking(
       req.body,
       req.user.email,
+      userId,
     );
-    // console.log("newBooking", newBooking);
-    res.status(StatusCodes.CREATED).json({
-      message: "Booking created successfully",
-      booking: newBooking,
-    });
+    responseHandler(
+      res,
+      newBooking,
+      "Booking created successfully",
+      StatusCodes.CREATED,
+    );
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to create booking");
   }
 };
 
@@ -29,43 +30,29 @@ const fetchByBookingId = async (req, res) => {
   try {
     const booking = await bookingService.fetchByBookingId(bookingId);
     if (!booking) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Booking not found" });
+      throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
     }
-    res.status(StatusCodes.OK).json({ booking });
+    responseHandler(res, booking, "Booking fetched successfully");
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to fetch booking");
   }
 };
 
 const cancelBooking = async (req, res) => {
   const { id } = req.params;
+  const userId = req.user.id;
 
   try {
-    const booking = await Booking.findByPk(id);
+    const booking = await bookingService.cancelBooking(id, userId);
 
-    if (!booking) {
-      throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
-    }
-
-    if (booking.status === "Cancelled") {
-      throwCustomError("Booking is already cancelled", StatusCodes.BAD_REQUEST);
-    }
-
-    booking.status = "Cancelled";
-    await booking.save();
-
-    res.status(StatusCodes.OK).json({ booking });
+    responseHandler(res, booking, "Booking cancelled successfully");
   } catch (error) {
-    console.error("Error in cancelBooking:", error);
-    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+    errorHandler(res, error, "Failed to cancel booking");
   }
 };
 
 const updateBookingDetails = async (req, res) => {
   const { id } = req.params;
-  console.log("bookingId from params");
   const updatedData = req.body;
   const userId = req.user.id;
 
@@ -75,28 +62,22 @@ const updateBookingDetails = async (req, res) => {
       updatedData,
       userId,
     );
-
     responseHandler(res, updatedBooking, "Booking updated successfully");
   } catch (error) {
-    console.error(error);
-    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+    errorHandler(res, error, "Failed to update booking details");
   }
 };
 
-const submitFeedback = async (req, res, next) => {
+const submitFeedback = async (req, res) => {
   try {
     const bookingId = req.params.id;
-
-    console.log("Booking ID:", bookingId);
-
     const { feedback } = req.body;
 
     if (!feedback) {
-      throwCustomError("Feedback is required", 400);
+      throwCustomError("Feedback is required", StatusCodes.BAD_REQUEST);
     }
 
     const userId = req.user.id;
-    console.log("User ID:", userId);
 
     const result = await bookingService.submitFeedback({
       bookingId,
@@ -104,12 +85,9 @@ const submitFeedback = async (req, res, next) => {
       feedback,
     });
 
-    res.status(StatusCodes.OK).json({
-      message: "Feedback submitted successfully",
-      data: result,
-    });
+    responseHandler(res, result, "Feedback submitted successfully");
   } catch (error) {
-    next(error);
+    errorHandler(res, error, "Failed to submit feedback");
   }
 };
 
@@ -117,15 +95,11 @@ const monthlySummary = async (req, res) => {
   try {
     const { page, pageSize } = req.query;
     const { year = new Date().getFullYear() } = req.query;
-    console.log("year", year);
 
     const result = await bookingService.monthlySummary(year, page, pageSize);
-    res.status(StatusCodes.OK).json({
-      message: "Retrieved  monthly data successfully",
-      data: result,
-    });
+    responseHandler(res, result, "Monthly summary retrieved successfully");
   } catch (error) {
-    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+    errorHandler(res, error, "Failed to retrieve monthly summary");
   }
 };
 
@@ -134,25 +108,20 @@ const getBookings = async (req, res) => {
     const { month, year } = req.query;
 
     if (!month || !year || isNaN(month) || isNaN(year)) {
-      return responseHandler(
-        res,
-        400,
+      throwCustomError(
         "Invalid or missing month and year values",
+        StatusCodes.BAD_REQUEST,
       );
     }
 
     const bookings = await bookingService.getBookingDetails(month, year);
-    return res.status(200).json({
-      status: 200,
-      message: `Bookings for ${month}/${year}`,
-      data: bookings,
-    });
+    responseHandler(res, bookings, `Bookings for ${month}/${year}`);
   } catch (error) {
-    errorHandler(res, error, error.statusCode || StatusCodes.BAD_REQUEST);
+    errorHandler(res, error, "Failed to fetch bookings");
   }
 };
 
-const downloadMonthlyBookings = async (req, res, next) => {
+const downloadMonthlyBookings = async (req, res) => {
   try {
     const { month, year } = req.query;
     const csvData = await bookingService.downloadMonthlyBookings({
@@ -163,7 +132,7 @@ const downloadMonthlyBookings = async (req, res, next) => {
     res.attachment(`bookings_${month || "all"}_${year || "all"}.csv`);
     res.send(csvData);
   } catch (error) {
-    next(error);
+    errorHandler(res, error, "Failed to download bookings");
   }
 };
 
