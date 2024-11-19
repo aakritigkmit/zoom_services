@@ -60,14 +60,6 @@ const createCar = async (carData, ownerId, imagePath) => {
 
 const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
   try {
-    // const searchRadius = radius || 10;
-
-    // Debugging logs
-    console.log(
-      `User coordinates: latitude = ${userLatitude}, longitude = ${userLongitude}`,
-    );
-    console.log("Search radius: ", radius);
-
     const cars = await client.sendCommand([
       "GEORADIUS",
       "cars:locations",
@@ -78,9 +70,7 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
       "WITHDIST",
       "ASC",
     ]);
-
-    console.log("Redis GEORADIUS response cars: ", cars);
-
+    console.log(cars);
     return cars.map((car) => ({
       id: car[0],
       distance: parseFloat(car[1]),
