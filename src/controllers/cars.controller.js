@@ -7,15 +7,16 @@ const {
 } = require("../helpers/common.helper");
 
 const createCar = async (req, res) => {
-  const carData = req.body;
-  const imagePath = req.file?.path;
-  const ownerId = req.user.id;
-
   try {
+    const carData = req.body;
+    const imagePath = req.file?.path;
+    const ownerId = req.user.id;
     const car = await carService.createCar(carData, ownerId, imagePath);
     responseHandler(res, car, "Car created successfully", StatusCodes.CREATED);
   } catch (error) {
-    errorHandler(res, error, "Failed to create car");
+    console.log("error", error);
+    // errorHandler(res, error, "Failed to create car");
+    res.status(400).json({ message: error.message });
   }
 };
 
