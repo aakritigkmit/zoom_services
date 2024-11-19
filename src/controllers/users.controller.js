@@ -28,7 +28,7 @@ const register = async (req, res) => {
     );
   } catch (error) {
     console.log(error);
-    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -42,7 +42,7 @@ const fetchUser = async (req, res) => {
     const users = await userService.fetchUsers(page, pageSize);
     responseHandler(res, users, "Users fetched successfully");
   } catch (error) {
-    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -58,7 +58,7 @@ const fetchById = async (req, res) => {
 
     responseHandler(res, result.user, "User fetched successfully");
   } catch (error) {
-    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
     console.log(error);
   }
 };
@@ -82,7 +82,7 @@ const editUserDetails = async (req, res) => {
 
     responseHandler(res, updatedUser, "User details updated successfully");
   } catch (error) {
-    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -104,7 +104,7 @@ const removeUser = async (req, res) => {
 
     responseHandler(res, null, "User deleted successfully");
   } catch (error) {
-    errorHandler(res, error, StatusCodes.INTERNAL_SERVER_ERROR);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -121,18 +121,16 @@ const fetchAllBookingsForUser = async (req, res) => {
     );
 
     if (bookings.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No bookings found for this user" });
+      return throwCustomError(
+        "No bookings found for this user",
+        StatusCodes.NOT_FOUND,
+      );
     }
 
-    res.status(200).json({ bookings });
+    responseHandler(res, { bookings }, "Bookings fetched successfully");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "An error occurred while fetching bookings",
-      error: error.message,
-    });
+    // console.error(error);
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
