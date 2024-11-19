@@ -9,17 +9,10 @@ const {
 } = require("../helpers/common.helper.js");
 
 const register = async (req, res) => {
-  const { name, email, phoneNumber, password, roles, city } = req.body;
+  const payload = req.body;
 
   try {
-    const newUser = await userService.createUser(
-      name,
-      email,
-      phoneNumber,
-      password,
-      roles,
-      city,
-    );
+    const newUser = await userService.createUser(payload);
     responseHandler(
       res,
       newUser,
