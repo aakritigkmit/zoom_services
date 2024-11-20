@@ -23,7 +23,6 @@ const createUser = async (payload) => {
       city,
     });
 
-    // console.log(newUser);
     const role = await Role.findOne({ where: { name: roles } });
     if (!role) {
       throw { statusCode: 400, message: "Role does not exist" };
