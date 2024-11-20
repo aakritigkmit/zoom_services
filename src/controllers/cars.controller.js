@@ -15,8 +15,7 @@ const createCar = async (req, res) => {
     responseHandler(res, car, "Car created successfully", StatusCodes.CREATED);
   } catch (error) {
     console.log("error", error);
-    // errorHandler(res, error, "Failed to create car");
-    res.status(400).json({ message: error.message });
+    errorHandler(res, error, "Failed to create car");
   }
 };
 
