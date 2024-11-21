@@ -86,7 +86,7 @@ const fetchById = async (id, reqUser) => {
   ) {
     return { statusCode: StatusCodes.FORBIDDEN, message: "Forbidden" };
   }
-
+  console.log("FetchById Services", user);
   return { user };
 };
 

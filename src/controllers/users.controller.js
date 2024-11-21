@@ -3,43 +3,49 @@ const bookingService = require("../services/bookings.service");
 const { StatusCodes } = require("http-status-codes");
 
 const {
-  errorHandler,
-  responseHandler,
   throwCustomError,
+  errorHandler,
 } = require("../helpers/common.helper.js");
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   const payload = req.body;
 
   try {
     const newUser = await userService.createUser(payload);
-    responseHandler(
-      res,
-      newUser,
-      "User registered successfully",
-      StatusCodes.CREATED,
-    );
+    console.log("newUser", newUser);
+
+    res.data = { newUser };
+    res.message = "User registered successfully";
+    res.statusCode = StatusCodes.CREATED;
+    next();
   } catch (error) {
     console.log(error);
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
-const fetchUser = async (req, res) => {
+const fetchUser = async (req, res, next) => {
   try {
     const { page, pageSize } = req.query;
+
     if (!req.user || !req.user.roles.some((role) => role.name === "Admin")) {
       return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
 
     const users = await userService.fetchUsers(page, pageSize);
-    responseHandler(res, users, "Users fetched successfully");
+
+    console.log("BEFORE CONTusers", res.data);
+    res.data = { users };
+    res.message = "Users fetched successfully";
+    console.log("AFTER CONTusers", res.data);
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
-const fetchById = async (req, res) => {
+const fetchById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -48,15 +54,20 @@ const fetchById = async (req, res) => {
     if (result.statusCode) {
       return errorHandler(res, result, result.statusCode);
     }
-
-    responseHandler(res, result.user, "User fetched successfully");
+    // res.status(200).json({ message: "hellooooooooo" });
+    console.log("controllerFetchById", result.user);
+    res.data = { user: result.user };
+    res.message = "User fetched successfully";
+    console.log("controllerFetchById", res.data);
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
     console.log(error);
   }
 };
 
-const editUserDetails = async (req, res) => {
+const editUserDetails = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -68,22 +79,26 @@ const editUserDetails = async (req, res) => {
     }
 
     const updatedUser = await userService.editUserDetails(id, req.body);
-    console.log("updatedUser", updatedUser);
+
     if (!updatedUser) {
       return throwCustomError("User not found", StatusCodes.NOT_FOUND);
     }
 
-    responseHandler(res, updatedUser, "User details updated successfully");
+    res.data = { updatedUser };
+    res.message = "User details updated successfully";
+    res.statusCode = StatusCodes.OK;
+
+    next();
   } catch (error) {
     console.log(error);
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
-const removeUser = async (req, res) => {
+const removeUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    // Admins can delete any user, but users can only delete their own profile
+
     if (
       req.user.id !== id &&
       !req.user.roles.some((role) => role.name === "Admin")
@@ -92,19 +107,22 @@ const removeUser = async (req, res) => {
     }
 
     const deleted = await userService.removeUser(id);
+
     if (!deleted) {
       return throwCustomError("User not found", StatusCodes.NOT_FOUND);
     }
 
-    responseHandler(res, null, "User deleted successfully");
+    res.message = "User deleted successfully";
+
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
-const fetchAllBookingsForUser = async (req, res) => {
+const fetchAllBookingsForUser = async (req, res, next) => {
   const userId = req.user.id;
-  console.log("userId", userId);
 
   try {
     const { page = 1, pageSize = 10 } = req.query;
@@ -121,9 +139,11 @@ const fetchAllBookingsForUser = async (req, res) => {
       );
     }
 
-    responseHandler(res, { bookings }, "Bookings fetched successfully");
+    res.data = { bookings };
+    res.message = "Bookings fetched successfully";
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
-    // console.error(error);
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };

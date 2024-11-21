@@ -11,6 +11,9 @@ const {
   deleteUserByIdSchema,
 } = require("../validators/users.validator");
 
+const commonHelpers = require("../helpers/common.helper");
+const { userSerializerMiddleware } = require("../serializers/users.serializer");
+
 const router = express.Router();
 
 router.post(
@@ -19,16 +22,25 @@ router.post(
   validateRequest(registerSchema),
   checkRole(["Admin"]),
   userController.register,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
 );
 
-router.get("/", authenticate, userController.fetchUser);
+router.get(
+  "/",
+  authenticate,
+  userController.fetchUser,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
+);
 
 router.get(
   "/:id",
   authenticate,
-
   validateRequest(fetchUserByIdSchema, true),
   userController.fetchById,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
 );
 
 router.get(
@@ -36,6 +48,8 @@ router.get(
   authenticate,
   checkRole(["Admin", "Customer", "Car Owner"]),
   userController.fetchAllBookingsForUser,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
 );
 
 router.patch(
@@ -44,6 +58,8 @@ router.patch(
   validateRequest(fetchUserByIdSchema, true),
   validateRequest(editUserDetailsSchema),
   userController.editUserDetails,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
 );
 
 router.delete(
@@ -53,6 +69,8 @@ router.delete(
   validateRequest(fetchUserByIdSchema, true),
   checkRole(["Admin"]),
   userController.removeUser,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
 );
 
 module.exports = router;
