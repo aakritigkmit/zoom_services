@@ -1,5 +1,4 @@
 const userService = require("../services/users.service");
-const bookingService = require("../services/bookings.service");
 const { StatusCodes } = require("http-status-codes");
 
 const {
@@ -121,12 +120,12 @@ const removeUser = async (req, res, next) => {
   }
 };
 
-const fetchAllBookingsForUser = async (req, res, next) => {
+const fetchUserBookings = async (req, res, next) => {
   const userId = req.user.id;
 
   try {
     const { page = 1, pageSize = 10 } = req.query;
-    const bookings = await bookingService.fetchAllBookingsForUser(
+    const bookings = await userService.fetchUserBookings(
       userId,
       parseInt(page),
       parseInt(pageSize),
@@ -148,8 +147,26 @@ const fetchAllBookingsForUser = async (req, res, next) => {
   }
 };
 
+const fetchUserTransactions = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { page, limit } = req.query;
+    const transactions = await userService.fetchUserTransactions(
+      id,
+      page,
+      limit,
+    );
+    res.data = transactions;
+    res.message = "User  transactions retrieved successfully";
+    res.statusCode = StatusCodes.OK;
+    next();
+  } catch (error) {
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
+  }
+};
 module.exports = {
-  fetchAllBookingsForUser,
+  fetchUserTransactions,
+  fetchUserBookings,
   removeUser,
   editUserDetails,
   fetchById,

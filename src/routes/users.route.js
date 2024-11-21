@@ -44,10 +44,16 @@ router.get(
 );
 
 router.get(
+  "/:id/transactions",
+  authenticate,
+  userController.fetchUserTransactions,
+  userSerializerMiddleware,
+  commonHelpers.responseHandler,
+);
+router.get(
   "/:id/bookings",
   authenticate,
-  checkRole(["Admin", "Customer", "Car Owner"]),
-  userController.fetchAllBookingsForUser,
+  userController.fetchUserBookings,
   userSerializerMiddleware,
   commonHelpers.responseHandler,
 );

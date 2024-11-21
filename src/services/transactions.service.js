@@ -38,7 +38,7 @@ const create = async (data) => {
     const IGST = transaction_amount * 0.18;
     const SGST = transaction_amount * 0.18;
     const total_gst = GST + CGST + IGST + SGST;
-    const amount_paid = transaction_amount + total_gst;
+    const amount = transaction_amount + total_gst;
 
     const transaction = await Transaction.create(
       {
@@ -48,6 +48,7 @@ const create = async (data) => {
         CGST,
         IGST,
         SGST,
+        amount,
       },
       { transaction: t },
     );
@@ -72,7 +73,7 @@ const create = async (data) => {
         end_date: booking.end_date,
         total_amount: booking.fare,
         total_gst,
-        amount_paid,
+        amount,
         booking_status: "Confirmed",
       });
     }
