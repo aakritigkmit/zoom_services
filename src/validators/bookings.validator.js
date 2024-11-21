@@ -4,7 +4,6 @@ const uuidSchema = Joi.string().guid({ version: "uuidv4" });
 const dateSchema = Joi.date().iso();
 
 const createBookingSchema = Joi.object({
-  user_id: uuidSchema.required(),
   car_id: uuidSchema.required(),
   start_date: dateSchema.required(),
   end_date: dateSchema.required().min(Joi.ref("start_date")),

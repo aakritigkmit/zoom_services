@@ -1,15 +1,17 @@
 const authService = require("../services/auth.service");
-
+const { StatusCodes } = require("http-status-codes");
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
 const { blacklistToken } = require("../helpers/jwt.helper");
-
 const sendOtp = async (req, res) => {
   try {
     const otp = await authService.sendOtp(req.body.email);
-    responseHandler(res, { otp }, "OTP sent successfully");
+    responseHandler(res, { otp }, "OTP sent successfully", StatusCodes.OK);
   } catch (error) {
-    console.log(error);
-    errorHandler(res, error.message, error.statusCode || 400);
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
@@ -17,17 +19,22 @@ const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     const isValid = await authService.verifyOtp(email, otp);
+
     if (!isValid) {
-      return errorHandler(res, "Invalid or expired OTP", 400);
+      return errorHandler(
+        res,
+        "Invalid or expired OTP",
+        StatusCodes.BAD_REQUEST,
+      );
     }
-    responseHandler(res, null, "OTP verified");
+
+    responseHandler(res, null, "OTP verified", StatusCodes.OK);
   } catch (error) {
-    errorHandler(res, error.message, 400);
+    errorHandler(res, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
 const register = async (req, res) => {
-  console.log("Request body:", req.body);
   const { name, email, phoneNumber, password, roleName, city } = req.body;
 
   try {
@@ -43,20 +50,29 @@ const register = async (req, res) => {
       res,
       { user: newUser },
       "User registered successfully",
-      201,
+      StatusCodes.CREATED,
     );
   } catch (error) {
-    errorHandler(res, error.message, error.statusCode || 400);
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+
   try {
     const token = await authService.login(email, password);
-    responseHandler(res, { token }, "Login successful");
+    responseHandler(res, { token }, "Login successful", StatusCodes.OK);
   } catch (error) {
-    errorHandler(res, error.message, error.statusCode || 400);
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 

@@ -1,19 +1,21 @@
 const carService = require("../services/cars.service");
 const { StatusCodes } = require("http-status-codes");
+const {
+  throwCustomError,
+  errorHandler,
+  responseHandler,
+} = require("../helpers/common.helper");
 
 const createCar = async (req, res) => {
   const carData = req.body;
-  console.log("Received carData:", carData);
   const imagePath = req.file?.path;
-  // console.log(imagePath);
   const ownerId = req.user.id;
-  // console.log("ownerId", ownerId);
 
   try {
     const car = await carService.createCar(carData, ownerId, imagePath);
-    res.status(StatusCodes.CREATED).json({ car });
+    responseHandler(res, car, "Car created successfully", StatusCodes.CREATED);
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to create car");
   }
 };
 
@@ -21,27 +23,29 @@ const findNearestCars = async (req, res) => {
   const { latitude, longitude, radius } = req.query;
 
   if (!latitude || !longitude) {
-    return res.status(StatusCodes.BAD_REQUEST).json({
-      message: "Latitude and longitude are required",
-    });
+    return responseHandler(
+      res,
+      null,
+      "Latitude and longitude are required",
+      StatusCodes.BAD_REQUEST,
+    );
   }
 
   try {
-    // Call the service to find nearest cars
     const nearbyCars = await carService.findNearestCars(
       parseFloat(latitude),
       parseFloat(longitude),
       radius ? parseFloat(radius) : 10,
     );
-
-    // Return the list of nearby cars
-    res.status(StatusCodes.OK).json({ nearbyCars });
+    responseHandler(
+      res,
+      nearbyCars,
+      "Nearby cars fetched successfully",
+      StatusCodes.OK,
+    );
   } catch (error) {
     console.error("Error finding nearest cars:", error.message);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "Unable to find nearby cars",
-      error: error.message,
-    });
+    errorHandler(res, error, "Failed to find nearest cars");
   }
 };
 
@@ -50,20 +54,17 @@ const fetchByCarId = async (req, res) => {
   try {
     const car = await carService.fetchByCarId(carId);
     if (!car) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Car not found" });
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
-    res.status(StatusCodes.OK).json({ car });
+    responseHandler(res, car, "Car fetched successfully");
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to fetch car");
   }
 };
 
 const update = async (req, res) => {
   try {
     const carId = req.params.id;
-    console.log("carId", carId);
     const userId = req.user.id;
     const updatedData = req.body;
 
@@ -74,13 +75,11 @@ const update = async (req, res) => {
     );
 
     if (!updatedCar) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Car not found" });
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
-    res.status(StatusCodes.OK).json({ updatedCar });
+    responseHandler(res, updatedCar, "Car updated successfully");
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to update car details");
   }
 };
 
@@ -89,15 +88,12 @@ const updateCarStatus = async (req, res) => {
     const carId = req.params.id;
     const { status } = req.body;
     const userId = req.user.id;
-    console.log("userId", userId);
+
     const updatedCar = await carService.updateCarStatus(carId, status, userId);
 
-    res
-      .status(200)
-      .json({ message: "Car status updated successfully", data: updatedCar });
+    responseHandler(res, updatedCar, "Car status updated successfully");
   } catch (error) {
-    console.log(error);
-    res.status(400).json({ message: error.message });
+    errorHandler(res, error, "Failed to update car status");
   }
 };
 
@@ -106,13 +102,11 @@ const removeCar = async (req, res) => {
   try {
     const deletedCar = await carService.removeCar(carId);
     if (!deletedCar) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "Car not found" });
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
-    res.status(StatusCodes.OK).json({ message: "Car deleted successfully" });
+    responseHandler(res, null, "Car deleted successfully");
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    errorHandler(res, error, "Failed to delete car");
   }
 };
 

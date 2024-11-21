@@ -1,19 +1,22 @@
 const transactionService = require("../services/transactions.service");
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
-
+const { StatusCodes } = require("http-status-codes");
 const generate = async (req, res) => {
   try {
     const transaction = await transactionService.create(req.body);
 
-    return responseHandler(
+    responseHandler(
       res,
       transaction,
       "Transaction created successfully",
-      201,
+      StatusCodes.CREATED,
     );
   } catch (error) {
-    console.error("Error creating transaction:", error.message);
-    return errorHandler(res, error);
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
@@ -23,17 +26,13 @@ const fetchAll = async (req, res) => {
 
     const result = await transactionService.getAll(filters, page, limit);
 
-    // res.data = result;
-    res.statusCode = 200;
-    responseHandler(res, result);
+    responseHandler(res, result, "Transactions fetched successfully");
   } catch (error) {
-    console.error(error);
-
-    if (error.statusCode) {
-      errorHandler(res, error.message, error.statusCode);
-    } else {
-      errorHandler(res, "Transaction not found", 404);
-    }
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
@@ -43,32 +42,43 @@ const fetchById = async (req, res) => {
 
     const transaction = await transactionService.getById(id);
 
-    // res.data = transaction;
-    res.statusCode = 200;
-    responseHandler(res, transaction);
-  } catch (error) {
-    console.error(error);
-
-    if (error.statusCode) {
-      errorHandler(res, error.message, error.statusCode);
-    } else {
-      errorHandler(res, "Transaction not found", 404);
+    if (!transaction) {
+      throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
     }
+
+    responseHandler(res, transaction, "Transaction fetched successfully");
+  } catch (error) {
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
 const remove = async (req, res) => {
   try {
-    await transactionService.remove(req.params.id);
-    res.data = {
-      message: "Transaction deleted successfully!",
-    };
-    res.statusCode = 204;
-    responseHandler(res);
+    const { id } = req.params;
+    await transactionService.remove(id);
+
+    responseHandler(
+      res,
+      null,
+      "Transaction deleted successfully",
+      StatusCodes.NO_CONTENT,
+    );
   } catch (error) {
-    console.log(error);
-    errorHandler(res, error.message, 404);
+    errorHandler(
+      res,
+      error.message,
+      error.statusCode || StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
-module.exports = { generate, fetchAll, fetchById, remove };
+module.exports = {
+  generate,
+  fetchAll,
+  fetchById,
+  remove,
+};

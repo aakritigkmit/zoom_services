@@ -6,7 +6,12 @@ function throwCustomError(message, statusCode = StatusCodes.BAD_REQUEST) {
   throw error;
 }
 
-function errorHandler(res, error, defaultStatusCode = StatusCodes.BAD_REQUEST) {
+function errorHandler(
+  res,
+  error,
+  message,
+  defaultStatusCode = StatusCodes.BAD_REQUEST,
+) {
   const statusCode = error.statusCode || defaultStatusCode;
   res
     .status(statusCode)

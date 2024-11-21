@@ -1,7 +1,8 @@
-exports.calculateBookingFare = (car, estimatedDistance, startDate, endDate) => {
+const calculateBookingFare = (car, estimatedDistance, startDate, endDate) => {
   const distanceFare = estimatedDistance * car.price_per_km;
 
-  // Calculate hours difference between startDate and endDate
+  //calculate hours difference between start and end Date
+
   const hours = Math.ceil(
     (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60),
   );
@@ -9,3 +10,5 @@ exports.calculateBookingFare = (car, estimatedDistance, startDate, endDate) => {
 
   return distanceFare + timeFare;
 };
+
+module.exports = calculateBookingFare;

@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-exports.registerSchema = Joi.object({
+const registerSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
   email: Joi.string().email().required(),
   phoneNumber: Joi.string()
@@ -16,7 +16,7 @@ exports.registerSchema = Joi.object({
   city: Joi.string().min(3).max(100).required(),
 });
 
-exports.fetchUserByIdSchema = Joi.object({
+const fetchUserByIdSchema = Joi.object({
   id: Joi.string().uuid().required().messages({
     "string.base": "ID should be a string",
     "string.empty": "ID cannot be empty",
@@ -24,7 +24,7 @@ exports.fetchUserByIdSchema = Joi.object({
   }),
 });
 
-exports.editUserDetailsSchema = Joi.object({
+const editUserDetailsSchema = Joi.object({
   name: Joi.string().min(3).max(30).messages({
     "string.base": "Name should be a string",
     "string.min": "Name should have at least 3 characters",
@@ -44,10 +44,17 @@ exports.editUserDetailsSchema = Joi.object({
   }),
 });
 
-exports.deleteUserByIdSchema = Joi.object({
+const deleteUserByIdSchema = Joi.object({
   id: Joi.string().uuid().required().messages({
     "string.base": "ID should be a string",
     "string.empty": "ID cannot be empty",
     "any.required": "ID is required",
   }),
 });
+
+module.exports = {
+  deleteUserByIdSchema,
+  editUserDetailsSchema,
+  fetchUserByIdSchema,
+  registerSchema,
+};
