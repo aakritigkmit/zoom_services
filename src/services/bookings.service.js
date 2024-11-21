@@ -4,7 +4,9 @@ const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
 
-const createBooking = async (data) => {
+const scheduleHelper = require("../schedulers/bookings.scheduler.js");
+
+const createBooking = async (data, email) => {
   const rollBack = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
@@ -31,8 +33,23 @@ const createBooking = async (data) => {
     );
 
     const newBooking = await Booking.create({ ...data, fare: totalFare });
-
+    console.log(newBooking);
     await rollBack.commit();
+    console.log(email);
+    scheduleHelper(
+      newBooking.id,
+      newBooking.start_date,
+      newBooking.end_date,
+      email,
+      (bookingId, timeLeft) => {
+        console.log(
+          `Reminder for booking ${bookingId}: ${timeLeft} hours left.`,
+        );
+      },
+      (bookingId) => {
+        console.log(`Late drop-off detected for booking ${bookingId}.`);
+      },
+    );
 
     return newBooking;
   } catch (error) {

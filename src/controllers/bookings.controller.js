@@ -10,7 +10,10 @@ const { Booking } = require("../models");
 const createBooking = async (req, res) => {
   try {
     // console.log("req.body", req.body);
-    const newBooking = await bookingService.createBooking(req.body);
+    const newBooking = await bookingService.createBooking(
+      req.body,
+      req.user.email,
+    );
     // console.log("newBooking", newBooking);
     res.status(StatusCodes.CREATED).json({
       message: "Booking created successfully",

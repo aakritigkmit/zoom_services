@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
-exports.sendOtpEmail = async (to, otp) => {
+const sendOtpEmail = async (to, otp) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to,
@@ -20,7 +20,7 @@ exports.sendOtpEmail = async (to, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-exports.sendTransactionEmail = async ({
+const sendTransactionEmail = async ({
   to,
   subject,
   description,
@@ -63,3 +63,29 @@ exports.sendTransactionEmail = async ({
 
   await transporter.sendMail(emailOptions);
 };
+
+const sendEmail = async (to, subject, text) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail", // Use your email provider
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER, // Replace with your email
+    to,
+    subject,
+    text,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${to}: ${subject}`);
+  } catch (error) {
+    console.error(`Failed to send email: ${error.message}`);
+  }
+};
+
+module.exports = { sendEmail, sendTransactionEmail, sendOtpEmail };
