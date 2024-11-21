@@ -37,6 +37,7 @@ const transactionSerializer = (transaction) => ({
   CGST: transaction.CGST,
   IGST: transaction.IGST,
   SGST: transaction.SGST,
+  amount: transaction.amount,
   booking: transaction.booking ? bookingSerializer(transaction.booking) : null,
   ...normalizeTimestamps(transaction),
 });
