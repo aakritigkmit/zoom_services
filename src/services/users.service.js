@@ -2,7 +2,8 @@ const { User, Role, sequelize } = require("../models");
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
-const createUser = async (name, email, phoneNumber, password, roles, city) => {
+const createUser = async (payload) => {
+  const { name, email, phoneNumber, password, roles, city } = payload;
   const rollBack = await sequelize.transaction();
 
   try {
