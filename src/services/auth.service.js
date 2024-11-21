@@ -75,7 +75,7 @@ const registerUser = async (payload) => {
   } catch (error) {
     console.error("Validation Error Details:", error.errors || error.message);
     throw {
-      statusCode: 500,
+      statusCode: 400,
       message: error.errors
         ? error.errors[0].message
         : error.message || "An unexpected error occurred.",
