@@ -6,7 +6,18 @@ const { sequelize } = require("./src/models");
 const { connectToRedis } = require("./src/config/redis");
 const { registerRoutes } = require("./src/routes/index.js");
 const { initializeSchedulers } = require("./src/schedulers");
+
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const path = require("path");
+
 const app = express();
+
+const swaggerDocument = YAML.load(
+  path.join(__dirname, "/src/swaggers/swagger.yaml"),
+);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
