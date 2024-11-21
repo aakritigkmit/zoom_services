@@ -1,4 +1,11 @@
-const { User, Role, sequelize } = require("../models");
+const {
+  User,
+  Role,
+  sequelize,
+  Booking,
+  Car,
+  Transaction,
+} = require("../models");
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
@@ -112,7 +119,7 @@ const editUserDetails = async (userId, updateData) => {
   }
 };
 
-const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
+const fetchUserBookings = async (userId, page = 1, pageSize = 10) => {
   const offset = (page - 1) * pageSize;
 
   const { count, rows: bookings } = await Booking.findAndCountAll({
@@ -139,6 +146,36 @@ const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
   };
 };
 
+const fetchUserTransactions = async (userId, page = 1, limit = 10) => {
+  const offset = (page - 1) * limit;
+  const transactions = await Transaction.findAndCountAll({
+    where: { user_id: userId },
+    include: [
+      {
+        model: Booking,
+        as: "booking",
+        attributes: ["id"],
+        include: [
+          {
+            model: Car,
+            as: "car",
+            attributes: ["id", "model", "status"],
+          },
+        ],
+      },
+    ],
+    limit,
+    offset,
+    order: [["created_at", "DESC"]],
+  });
+  return {
+    total: transactions.count,
+    pages: Math.ceil(transactions.count / limit),
+    currentPage: page,
+    data: transactions.rows,
+  };
+};
+
 const removeUser = async (id) => {
   const rollBack = await sequelize.transaction();
   try {
@@ -161,8 +198,9 @@ const removeUser = async (id) => {
 module.exports = {
   createUser,
   fetchUsers,
-  removeUser,
-  fetchAllBookingsForUser,
+  fetchUserBookings,
+  fetchUserTransactions,
   editUserDetails,
   fetchById,
+  removeUser,
 };

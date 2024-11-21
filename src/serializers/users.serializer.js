@@ -39,7 +39,7 @@ const userSerializerMiddleware = (req, res, next) => {
   if (!res.data) {
     return next();
   }
-
+  // console.log("====================>", res.data);
   const serializeData = (data) => {
     if (data.newUser) {
       return {
