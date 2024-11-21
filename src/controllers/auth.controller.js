@@ -1,11 +1,16 @@
 const authService = require("../services/auth.service");
 const { StatusCodes } = require("http-status-codes");
-const { errorHandler, responseHandler } = require("../helpers/common.helper");
+const { errorHandler } = require("../helpers/common.helper");
 const { blacklistToken } = require("../helpers/jwt.helper");
-const sendOtp = async (req, res) => {
+
+const sendOtp = async (req, res, next) => {
   try {
     const otp = await authService.sendOtp(req.body.email);
-    responseHandler(res, { otp }, "OTP sent successfully", StatusCodes.OK);
+
+    res.message = "Otp sent Successfully";
+    res.data = { otp };
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -15,7 +20,7 @@ const sendOtp = async (req, res) => {
   }
 };
 
-const verifyOtp = async (req, res) => {
+const verifyOtp = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
     const isValid = await authService.verifyOtp(email, otp);
@@ -27,24 +32,30 @@ const verifyOtp = async (req, res) => {
         StatusCodes.BAD_REQUEST,
       );
     }
+    res.message = "OTP verified";
+    res.statusCode = StatusCodes.OK;
 
-    responseHandler(res, null, "OTP verified", StatusCodes.OK);
+    console.log("res.data", res.data);
+
+    next();
   } catch (error) {
     errorHandler(res, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
+  console.log("req.body", req.body);
   const payload = req.body;
 
   try {
     const newUser = await authService.registerUser(payload);
-    responseHandler(
-      res,
-      { user: newUser },
-      "User registered successfully",
-      StatusCodes.CREATED,
-    );
+
+    res.message = "User registered successfully";
+    res.data = { user: newUser };
+
+    console.log("controllers", res.data);
+    res.statusCode = StatusCodes.CREATED;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -54,12 +65,16 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
     const token = await authService.login(email, password);
-    responseHandler(res, { token }, "Login successful", StatusCodes.OK);
+
+    res.message = "Login successful";
+    res.data = { token };
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -69,16 +84,19 @@ const login = async (req, res) => {
   }
 };
 
-const logout = async (req, res) => {
+const logout = async (req, res, next) => {
   const token = req.headers["authorization"]?.split(" ")[1];
-  console.log(token);
+
   if (!token) {
     return errorHandler(res, "Token not provided", 401);
   }
 
   try {
     await blacklistToken(token);
-    responseHandler(res, null, "Logged out successfully");
+
+    res.message = "Logged out successfully";
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     console.error("Logout error:", error.message);
     errorHandler(res, "Failed to logout", 400);
