@@ -1,11 +1,11 @@
 const { verifyToken } = require("../helpers/jwt.helper");
 const { User, Role } = require("../models");
 
-// eslint-disable-next-line consistent-return
 exports.authenticate = async (req, res, next) => {
-  const token =
-    req.headers["authorization"] || req.headers["Authorization"]?.split(" ")[1];
-  console.log(token);
+  const token = (
+    req.headers["authorization"] || req.headers["Authorization"]
+  )?.split(" ")[1];
+  console.log("#######", token);
   if (!token) {
     return res
       .status(401)
