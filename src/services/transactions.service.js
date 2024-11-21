@@ -102,9 +102,10 @@ const getAll = async (filters, page = 1, limit = 10) => {
       {
         model: Booking,
         as: "booking",
+        attributes: ["id", "fare"],
         include: [
-          { model: Car, as: "car" },
-          { model: User, as: "user" },
+          { model: Car, as: "car", attributes: ["id", "model"] },
+          { model: User, as: "user", attributes: ["id", "name", "email"] },
         ],
       },
     ],
@@ -131,11 +132,15 @@ const getById = async (id) => {
       {
         model: Booking,
         as: "booking",
+        attributes: ["id"],
         include: [
           {
             model: Car,
             as: "car",
-            include: [{ model: User, as: "user" }],
+            attributes: ["id", "model"],
+            include: [
+              { model: User, as: "user", attributes: ["id", "name", "email"] },
+            ],
           },
         ],
       },
