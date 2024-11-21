@@ -20,7 +20,7 @@ router.post(
   checkRole(["Car Owner", "Admin"]),
   upload.single("image"),
   validateRequest(createCarSchema),
-  carController.createCar,
+  carController.create,
   serializeCar,
   commonHelpers.responseHandler,
 );
@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/:id",
   authenticate,
-  carController.fetchByCarId,
+  carController.fetchById,
   serializeCar,
   commonHelpers.responseHandler,
 );
@@ -43,7 +43,8 @@ router.get(
 router.get(
   "/:id/bookings",
   authenticate,
-  carController.fetchCarBookings,
+  checkRole(["Car Owner", "Admin"]),
+  carController.fetchBookings,
   serializeCar,
   commonHelpers.responseHandler,
 );
@@ -63,7 +64,7 @@ router.patch(
   authenticate,
   checkRole(["Car Owner", "Admin"]),
   validateRequest(updateCarStatusSchema),
-  carController.updateCarStatus,
+  carController.updateStatus,
   serializeCar,
   commonHelpers.responseHandler,
 );
@@ -72,7 +73,7 @@ router.delete(
   "/:id",
   authenticate,
   checkRole(["Admin"]),
-  carController.removeCar,
+  carController.remove,
   serializeCar,
   commonHelpers.responseHandler,
 );

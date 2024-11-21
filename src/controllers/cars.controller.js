@@ -2,18 +2,17 @@ const carService = require("../services/cars.service");
 const { StatusCodes } = require("http-status-codes");
 const { throwCustomError, errorHandler } = require("../helpers/common.helper");
 
-const createCar = async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
     const carData = req.body;
     const imagePath = req.file?.path;
     const ownerId = req.user.id;
 
-    const car = await carService.createCar(carData, ownerId, imagePath);
+    const car = await carService.create(carData, ownerId, imagePath);
 
-    res.data = {
-      car,
-      message: "Car created successfully",
-    };
+    res.data = { car };
+    res.message = "Car created successfully";
+
     console.log("create car", res.data);
     res.statusCode = StatusCodes.CREATED;
     next();
@@ -22,12 +21,12 @@ const createCar = async (req, res, next) => {
   }
 };
 
-const fetchCarBookings = async (req, res, next) => {
+const fetchBookings = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const carId = req.params.id;
 
-    const bookings = await carService.fetchCarBookings(userId, carId);
+    const bookings = await carService.fetchBookings(userId, carId);
     console.log("bookings", bookings);
 
     res.data = { bookings: bookings.length ? bookings : null };
@@ -63,6 +62,9 @@ const findNearestCars = async (req, res, next) => {
       radius ? parseFloat(radius) : 10,
     );
     console.log(nearbyCars);
+    if (nearbyCars.length === 0) {
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
+    }
 
     res.data = { car: nearbyCars };
     res.message = "Nearby cars fetched successfully";
@@ -75,11 +77,11 @@ const findNearestCars = async (req, res, next) => {
   }
 };
 
-const fetchByCarId = async (req, res, next) => {
+const fetchById = async (req, res, next) => {
   try {
     const carId = req.params.id;
 
-    const car = await carService.fetchByCarId(carId);
+    const car = await carService.fetchById(carId);
 
     if (!car) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
@@ -103,11 +105,7 @@ const update = async (req, res, next) => {
     const userId = req.user.id;
     const updatedData = req.body;
 
-    const updatedCar = await carService.updateCarDetails(
-      carId,
-      updatedData,
-      userId,
-    );
+    const updatedCar = await carService.update(carId, updatedData, userId);
 
     if (!updatedCar) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
@@ -122,13 +120,13 @@ const update = async (req, res, next) => {
   }
 };
 
-const updateCarStatus = async (req, res, next) => {
+const updateStatus = async (req, res, next) => {
   try {
     const carId = req.params.id;
     const { status } = req.body;
     const userId = req.user.id;
 
-    const updatedCar = await carService.updateCarStatus(carId, status, userId);
+    const updatedCar = await carService.updateStatus(carId, status, userId);
 
     res.data = { car: updatedCar };
     res.message = "Car status updated successfully";
@@ -139,11 +137,11 @@ const updateCarStatus = async (req, res, next) => {
   }
 };
 
-const removeCar = async (req, res, next) => {
+const remove = async (req, res, next) => {
   try {
     const carId = req.params.id;
 
-    const deletedCar = await carService.removeCar(carId);
+    const deletedCar = await carService.remove(carId);
 
     if (!deletedCar) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
@@ -158,11 +156,11 @@ const removeCar = async (req, res, next) => {
 };
 
 module.exports = {
-  createCar,
-  fetchCarBookings,
+  create,
+  fetchBookings,
   findNearestCars,
-  fetchByCarId,
+  fetchById,
   update,
-  updateCarStatus,
-  removeCar,
+  updateStatus,
+  remove,
 };

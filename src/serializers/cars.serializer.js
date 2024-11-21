@@ -18,7 +18,6 @@ const serializeSingleCar = (car) => ({
   deletedAt: car.deleted_at || null,
 });
 
-// Function to serialize car bookings
 const serializeCarBookings = (bookings) => {
   if (!bookings || bookings.length === 0) {
     return [];
@@ -56,7 +55,7 @@ const serializeCar = (req, res, next) => {
 
     res.data = {
       bookings: serializedBookings,
-      message: data.message || "Bookings retrieved successfully",
+      // message: data.message || "Bookings retrieved successfully",
     };
 
     return next();
@@ -67,7 +66,7 @@ const serializeCar = (req, res, next) => {
 
     res.data = {
       car: serializedCar,
-      message: data.message || "Car bookings retrieved successfully",
+      // message: data.message || "Car bookings retrieved successfully",
     };
   }
 
