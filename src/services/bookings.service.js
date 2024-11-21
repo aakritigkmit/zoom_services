@@ -3,8 +3,8 @@ const { calculateBookingFare } = require("../helpers/calculateFares.helper");
 const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
-
-const scheduleHelper = require("../schedulers/bookings.scheduler.js");
+const { sendEmail } = require("../utils/email");
+const moment = require("moment");
 
 const createBooking = async (data, email) => {
   const rollBack = await sequelize.transaction();
@@ -35,21 +35,6 @@ const createBooking = async (data, email) => {
     const newBooking = await Booking.create({ ...data, fare: totalFare });
     console.log(newBooking);
     await rollBack.commit();
-    console.log(email);
-    scheduleHelper(
-      newBooking.id,
-      newBooking.start_date,
-      newBooking.end_date,
-      email,
-      (bookingId, timeLeft) => {
-        console.log(
-          `Reminder for booking ${bookingId}: ${timeLeft} hours left.`,
-        );
-      },
-      (bookingId) => {
-        console.log(`Late drop-off detected for booking ${bookingId}.`);
-      },
-    );
 
     return newBooking;
   } catch (error) {
@@ -253,6 +238,62 @@ const downloadMonthlyBookings = async ({ month, year }) => {
   return csvData;
 };
 
+const bookingScheduler = async () => {
+  try {
+    // Fetch all confirmed bookings with user and car details
+    const confirmedBookings = await Booking.findAll({
+      where: { status: "Confirmed" },
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "name", "email"],
+        },
+        {
+          model: Car,
+          as: "car",
+          attributes: ["id", "model", "type"],
+        },
+      ],
+    });
+
+    const now = new Date();
+
+    for (const booking of confirmedBookings) {
+      const { id: bookingId, start_date, end_date, user } = booking;
+
+      // Reminder Logic
+      const timeLeft = moment(start_date).diff(moment(), "hours");
+      if (timeLeft > 0 && timeLeft <= 24) {
+        console.log(`[Reminder] Booking ${bookingId}: ${timeLeft} hours left.`);
+
+        await sendEmail(
+          user.email,
+          "Booking Reminder",
+          `Hello! Your booking with ID ${bookingId} is about to start in ${timeLeft} hours.`,
+        );
+      }
+
+      // Late Notification Logic
+      if (moment(end_date).isBefore(now)) {
+        console.log(`[Late] Booking ${bookingId}: Your ride is late.`);
+
+        await sendEmail(
+          user.email,
+          "Late Notification",
+          `Your booking with ID ${bookingId} is overdue. Please return the car immediately.`,
+        );
+
+        // Optional: Update booking status to "Late"
+        booking.status = "Late";
+        await booking.save();
+      }
+    }
+  } catch (error) {
+    console.error("Error in booking scheduler:", error);
+  }
+};
+
 module.exports = {
   createBooking,
   fetchByBookingId,
@@ -263,4 +304,5 @@ module.exports = {
   fetchAllBookingsForUser,
   getBookingDetails,
   updateBooking,
+  bookingScheduler,
 };
