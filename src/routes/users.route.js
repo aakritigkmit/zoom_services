@@ -26,8 +26,16 @@ router.get("/", authenticate, userController.fetchUser);
 router.get(
   "/:id",
   authenticate,
+
   validateRequest(fetchUserByIdSchema, true),
   userController.fetchById,
+);
+
+router.get(
+  "/:id/bookings",
+  authenticate,
+  checkRole(["Admin", "Customer", "Car Owner"]),
+  userController.fetchAllBookingsForUser,
 );
 
 router.patch(
