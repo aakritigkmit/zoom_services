@@ -1,5 +1,5 @@
-const { Car, sequelize } = require("../models");
-
+const { Car, sequelize, Booking, User } = require("../models");
+const { Op } = require("sequelize");
 const { client } = require("../config/redis");
 const { StatusCodes } = require("http-status-codes");
 const { throwCustomError } = require("../helpers/common.helper.js");
@@ -58,6 +58,26 @@ const createCar = async (carData, ownerId, imagePath) => {
   }
 };
 
+const fetchCarBookings = async (ownerId, carId) => {
+  const car = await Car.findOne({
+    where: { id: carId, user_id: ownerId },
+    attributes: ["id", "model", "type", "status"],
+  });
+
+  if (!car) {
+    throwCustomError("This car does not belong to you", 403);
+  }
+
+  // Fetch bookings for the specific car
+  const bookings = await Booking.findAll({
+    where: { car_id: car.id },
+    include: [{ model: User, as: "user", attributes: ["id", "name", "email"] }],
+    attributes: ["id", "start_date", "end_date", "status", "fare"],
+  });
+
+  return bookings;
+};
+
 const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
   try {
     const cars = await client.sendCommand([
@@ -70,11 +90,33 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
       "WITHDIST",
       "ASC",
     ]);
-    console.log(cars);
-    return cars.map((car) => ({
-      id: car[0],
-      distance: parseFloat(car[1]),
-    }));
+    // console.log(cars);
+
+    if (!cars.length) {
+      return [];
+    }
+
+    const carIds = cars.map((car) => car[0]);
+    console.log("cars", carIds);
+    const availableCars = await Car.findAll({
+      where: {
+        id: {
+          [Op.in]: carIds,
+        },
+        status: {
+          [Op.notIn]: ["booked", "unavailable"],
+        },
+      },
+      attributes: ["id", "status"],
+    });
+    console.log("availaivle cars", availableCars);
+    const availableCarIds = availableCars.map((car) => car.id);
+    return cars
+      .filter((car) => availableCarIds.includes(car[0]))
+      .map((car) => ({
+        id: car[0],
+        distance: parseFloat(car[1]),
+      }));
   } catch (error) {
     console.error("Error fetching nearby cars:", error);
     throw new Error("Failed to retrieve nearby cars from Redis");
@@ -137,6 +179,7 @@ const updateCarStatus = async (carId, status, userId) => {
     throw error;
   }
 };
+
 const removeCar = async (carId) => {
   const car = await Car.findByPk(carId);
   if (!car) {
@@ -154,4 +197,5 @@ module.exports = {
   fetchByCarId,
   findNearestCars,
   createCar,
+  fetchCarBookings,
 };

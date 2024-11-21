@@ -12,6 +12,7 @@ const createCarSchema = Joi.object({
   price_per_km: Joi.number().min(0).required(),
   price_per_hr: Joi.number().min(0).required(),
   status: Joi.string().valid("available", "unavailable", "booked").required(),
+  chassis_number: Joi.string().required(),
 });
 
 const updateCarSchema = Joi.object({

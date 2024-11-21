@@ -7,15 +7,46 @@ const {
 } = require("../helpers/common.helper");
 
 const createCar = async (req, res) => {
-  const carData = req.body;
-  const imagePath = req.file?.path;
-  const ownerId = req.user.id;
-
   try {
+    const carData = req.body;
+    const imagePath = req.file?.path;
+    const ownerId = req.user.id;
     const car = await carService.createCar(carData, ownerId, imagePath);
     responseHandler(res, car, "Car created successfully", StatusCodes.CREATED);
   } catch (error) {
-    errorHandler(res, error, "Failed to create car");
+    console.log("error", error);
+    // errorHandler(res, error, "Failed to create car");
+    res.status(400).json({ message: error.message });
+  }
+};
+
+const fetchCarBookings = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const carId = req.params.id;
+
+    console.log("user", userId);
+    console.log("car", carId);
+
+    const bookings = await carService.fetchCarBookings(userId, carId);
+
+    if (!bookings.length) {
+      return responseHandler(
+        res,
+        null,
+        "No bookings found for this car",
+        StatusCodes.NOT_FOUND,
+      );
+    }
+
+    return responseHandler(
+      res,
+      bookings,
+      "Bookings retrieved successfully",
+      StatusCodes.OK,
+    );
+  } catch (error) {
+    errorHandler(res, error, "Failed to fetch Bookings of the Car");
   }
 };
 
@@ -117,4 +148,5 @@ module.exports = {
   update,
   updateCarStatus,
   removeCar,
+  fetchCarBookings,
 };
