@@ -1,16 +1,15 @@
 const transactionService = require("../services/transactions.service");
-const { errorHandler, responseHandler } = require("../helpers/common.helper");
+const { errorHandler } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
-const generate = async (req, res) => {
+
+const generate = async (req, res, next) => {
   try {
     const transaction = await transactionService.create(req.body);
 
-    responseHandler(
-      res,
-      transaction,
-      "Transaction created successfully",
-      StatusCodes.CREATED,
-    );
+    res.data = { transaction };
+    res.message = "Transaction created successfully";
+    res.statusCode = StatusCodes.CREATED;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -20,13 +19,16 @@ const generate = async (req, res) => {
   }
 };
 
-const fetchAll = async (req, res) => {
+const fetchAll = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
 
     const result = await transactionService.getAll(filters, page, limit);
 
-    responseHandler(res, result, "Transactions fetched successfully");
+    res.data = { transactions: result };
+    res.message = "Transactions fetched successfully";
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -36,17 +38,20 @@ const fetchAll = async (req, res) => {
   }
 };
 
-const fetchById = async (req, res) => {
+const fetchById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const transaction = await transactionService.getById(id);
 
     if (!transaction) {
-      throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
+      return throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
     }
 
-    responseHandler(res, transaction, "Transaction fetched successfully");
+    res.data = { transaction };
+    res.message = "Transaction fetched successfully";
+    res.statusCode = StatusCodes.OK;
+    next();
   } catch (error) {
     errorHandler(
       res,
@@ -56,17 +61,16 @@ const fetchById = async (req, res) => {
   }
 };
 
-const remove = async (req, res) => {
+const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
+
     await transactionService.remove(id);
 
-    responseHandler(
-      res,
-      null,
-      "Transaction deleted successfully",
-      StatusCodes.NO_CONTENT,
-    );
+    res.message = "Transaction deleted successfully";
+    res.statusCode = StatusCodes.NO_CONTENT;
+
+    next();
   } catch (error) {
     errorHandler(
       res,

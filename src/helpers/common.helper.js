@@ -18,13 +18,9 @@ function errorHandler(
     .json({ message: error.message || "An error occurred" });
 }
 
-function responseHandler(
-  res,
-  data,
-  message = "Success",
-  statusCode = StatusCodes.OK,
-) {
-  res.status(statusCode).json({ message, data });
+function responseHandler(req, res) {
+  console.log(res.data);
+  res.status(res.statusCode).json({ message: res.message, data: res.data });
 }
 
 module.exports = { throwCustomError, errorHandler, responseHandler };

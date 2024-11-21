@@ -35,13 +35,14 @@ const verifyOtp = async (email, otp) => {
     return true;
   }
 
-  // console.log("OTP verification failed for:", email);
+  console.log("OTP verification failed for:", email);
   return false;
 };
 
 const registerUser = async (payload) => {
   try {
     const { name, email, phoneNumber, password, roleName, city } = payload;
+
     const isVerified = await client.get(`verified:${email}`);
     console.log("Email verification status:", isVerified);
 
@@ -60,7 +61,7 @@ const registerUser = async (payload) => {
       city,
     });
 
-    console.log(newUser);
+    console.log("newUser", newUser);
 
     const role = await Role.findOne({ where: { name: roleName } });
     if (!role) {
