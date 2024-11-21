@@ -28,7 +28,6 @@ router.get(
   authenticate,
   transactionController.fetchById,
   transactionSerializerMiddleware,
-  transactionSerializerMiddleware,
   commonHelpers.responseHandler,
 );
 
