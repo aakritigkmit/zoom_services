@@ -1,10 +1,10 @@
-const { Booking, Car, User } = require("../models");
+const { Booking, Car, User, sequelize } = require("../models");
 const { calculateBookingFare } = require("../helpers/calculateFares.helper");
-const sequelize = require("sequelize");
 const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
+const { StatusCodes } = require("http-status-codes");
 
-exports.createBooking = async (data) => {
+const createBooking = async (data) => {
   const rollBack = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
@@ -30,22 +30,54 @@ exports.createBooking = async (data) => {
       data.end_date,
     );
 
-    const bookingData = { ...data, fare: totalFare };
+    const newBooking = await Booking.create({ ...data, fare: totalFare });
 
     await rollBack.commit();
 
-    return await Booking.create(bookingData);
+    return newBooking;
   } catch (error) {
     await rollBack.rollback();
     throw error;
   }
 };
 
-exports.fetchByBookingId = async (id) => {
+const fetchByBookingId = async (id) => {
   return await Booking.findByPk(id);
 };
 
-exports.cancelBooking = async (bookingId, userId) => {
+const updateBooking = async (bookingId, updatedData, userId) => {
+  const t = await sequelize.transaction();
+
+  try {
+    const booking = await Booking.findByPk(bookingId, { transaction: t });
+    console.log("booking", booking);
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    if (booking.user_id !== userId) {
+      throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
+
+    if (updatedData.car_id) {
+      const car = await Car.findByPk(updatedData.car_id, { transaction: t });
+      if (!car) {
+        throw new Error("Car not found");
+      }
+    }
+
+    await booking.update(updatedData, { transaction: t });
+
+    await t.commit();
+
+    return booking;
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
+};
+
+const cancelBooking = async (bookingId, userId) => {
   // console.log("bookingId", bookingId);
   // console.log("userId", userId);
 
@@ -74,7 +106,7 @@ exports.cancelBooking = async (bookingId, userId) => {
   return booking;
 };
 
-exports.submitFeedback = async ({ bookingId, userId, feedback }) => {
+const submitFeedback = async ({ bookingId, userId, feedback }) => {
   const booking = await Booking.findOne({
     where: { id: bookingId, user_id: userId },
   });
@@ -94,7 +126,7 @@ exports.submitFeedback = async ({ bookingId, userId, feedback }) => {
   return booking;
 };
 
-exports.monthlySummary = async (year = new Date().getFullYear()) => {
+const monthlySummary = async (year = new Date().getFullYear()) => {
   const summary = await Booking.findAll({
     attributes: [
       [
@@ -122,8 +154,7 @@ exports.monthlySummary = async (year = new Date().getFullYear()) => {
   return summary;
 };
 
-exports.getBookingDetails = async (month, year, page = 1, pageSize = 10) => {
-  const offset = (page - 1) * pageSize;
+const getBookingDetails = async (month, year) => {
   const bookings = await Booking.findAll({
     where: sequelize.and(
       sequelize.where(
@@ -139,20 +170,12 @@ exports.getBookingDetails = async (month, year, page = 1, pageSize = 10) => {
       { model: Car, as: "car", attributes: ["model", "type"] },
       { model: User, as: "user", attributes: ["name", "email"] },
     ],
-    order: [["start_date", "DESC"]],
-    limit: pageSize,
-    offset,
   });
 
-  return {
-    totalBookings: count,
-    currentPage: page,
-    totalPages: Math.ceil(count / pageSize),
-    bookings,
-  };
+  return bookings;
 };
 
-exports.fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
+const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
   const offset = (page - 1) * pageSize;
 
   const { count, rows: bookings } = await Booking.findAndCountAll({
@@ -179,7 +202,7 @@ exports.fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
   };
 };
 
-exports.downloadMonthlyBookings = async ({ month, year }) => {
+const downloadMonthlyBookings = async ({ month, year }) => {
   const whereConditions = {};
 
   if (month) {
@@ -211,4 +234,16 @@ exports.downloadMonthlyBookings = async ({ month, year }) => {
   const json2csvParser = new Parser();
   const csvData = json2csvParser.parse(bookings.map((b) => b.toJSON()));
   return csvData;
+};
+
+module.exports = {
+  createBooking,
+  fetchByBookingId,
+  cancelBooking,
+  submitFeedback,
+  downloadMonthlyBookings,
+  monthlySummary,
+  fetchAllBookingsForUser,
+  getBookingDetails,
+  updateBooking,
 };

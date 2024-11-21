@@ -1,7 +1,7 @@
 const carService = require("../services/cars.service");
 const { StatusCodes } = require("http-status-codes");
 
-exports.createCar = async (req, res) => {
+const createCar = async (req, res) => {
   const carData = req.body;
   console.log("Received carData:", carData);
   const imagePath = req.file?.path;
@@ -17,7 +17,7 @@ exports.createCar = async (req, res) => {
   }
 };
 
-exports.findNearestCars = async (req, res) => {
+const findNearestCars = async (req, res) => {
   const { latitude, longitude, radius } = req.query;
 
   if (!latitude || !longitude) {
@@ -45,7 +45,7 @@ exports.findNearestCars = async (req, res) => {
   }
 };
 
-exports.fetchByCarId = async (req, res) => {
+const fetchByCarId = async (req, res) => {
   const carId = req.params.id;
   try {
     const car = await carService.fetchByCarId(carId);
@@ -60,7 +60,7 @@ exports.fetchByCarId = async (req, res) => {
   }
 };
 
-exports.update = async (req, res) => {
+const update = async (req, res) => {
   try {
     const carId = req.params.id;
     console.log("carId", carId);
@@ -84,7 +84,7 @@ exports.update = async (req, res) => {
   }
 };
 
-exports.updateCarStatus = async (req, res) => {
+const updateCarStatus = async (req, res) => {
   try {
     const carId = req.params.id;
     const { status } = req.body;
@@ -97,11 +97,11 @@ exports.updateCarStatus = async (req, res) => {
       .json({ message: "Car status updated successfully", data: updatedCar });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ message: error.message });
+    res.status(400).json({ message: error.message });
   }
 };
 
-exports.removeCar = async (req, res) => {
+const removeCar = async (req, res) => {
   const carId = req.params.id;
   try {
     const deletedCar = await carService.removeCar(carId);
@@ -114,4 +114,13 @@ exports.removeCar = async (req, res) => {
   } catch (error) {
     res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
   }
+};
+
+module.exports = {
+  fetchByCarId,
+  findNearestCars,
+  createCar,
+  update,
+  updateCarStatus,
+  removeCar,
 };

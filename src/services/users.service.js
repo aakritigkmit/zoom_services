@@ -38,24 +38,6 @@ const createUser = async (name, email, phoneNumber, password, roles, city) => {
   }
 };
 
-// const fetchUsers = async () => {
-//   const users = await User.findAll({
-//     include: {
-//       model: Role,
-//       as: "roles",
-//       through: { attributes: [] },
-//       required: true,
-//     },
-//   });
-//   const formattedUsers = users.map((user) => ({
-//     ...user.toJSON(),
-//     roles: user.roles.map((role) => role.name),
-//   }));
-
-//   // console.log(formattedUsers);
-//   return formattedUsers;
-// };
-
 const fetchUsers = async (page = 1, pageSize = 10) => {
   const offset = (page - 1) * pageSize;
 

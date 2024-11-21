@@ -3,7 +3,8 @@ const { sendTransactionEmail } = require("../utils/email.js");
 const { throwCustomError } = require("../helpers/common.helper");
 
 const create = async (data) => {
-  console.log(data);
+  // console.log(data);
+
   const { user_id, booking_id } = data;
 
   const t = await sequelize.transaction();
