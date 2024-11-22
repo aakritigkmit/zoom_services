@@ -39,7 +39,7 @@ const bookingsListSerializer = (bookingsData) => ({
   totalBookings: bookingsData.totalBookings,
   currentPage: bookingsData.currentPage,
   totalPages: bookingsData.totalPages,
-  bookings: bookingsData.bookings.map(bookingSerializer),
+  bookings: bookingsData.bookings.map(bookingsSerializerMiddleware),
 });
 
 const bookingSerializer = (req, res, next) => {
