@@ -13,7 +13,7 @@ const checkRole = (requiredRoles) => {
         return errorHandler(res, "Access denied", 403);
       }
 
-      next(); // User has access, proceed
+      next();
     } catch (error) {
       console.error("Error in role middleware:", error);
       return errorHandler(res, "Server error", 400);
