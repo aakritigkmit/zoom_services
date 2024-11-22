@@ -11,7 +11,12 @@ const registerSchema = Joi.object({
     "string.min": "Password must be at least 6 characters long.",
   }),
   roles: Joi.array()
-    .items(Joi.string().valid("Car Owner", "Admin", "Customer").required())
+    .items(
+      Joi.string()
+        .valid("Car Owner", "Customer")
+        .not(Joi.string().valid("Admin"))
+        .required(),
+    )
     .required(),
   city: Joi.string().min(3).max(100).required(),
 });

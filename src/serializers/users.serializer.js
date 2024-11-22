@@ -4,15 +4,13 @@ const {
   removeCircularReferences,
 } = require("../helpers/serializer.helper");
 
-// Serialize a single role
 const roleSerializer = (role) => ({
   id: role.id,
   name: role.name,
   ...normalizeTimestamps(role),
 });
 
-// Serialize a single user
-const userSerializer = (user) => ({
+const userSerializerMiddleware = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
@@ -26,16 +24,14 @@ const userSerializer = (user) => ({
   ...normalizeTimestamps(user),
 });
 
-// Serialize a list of users
 const usersListSerializer = (usersData) => ({
   totalUsers: usersData.totalUsers,
   currentPage: usersData.currentPage,
   totalPages: usersData.totalPages,
-  users: usersData.users.map(userSerializer),
+  users: usersData.users.map(userSerializerMiddleware),
 });
 
-// Main serializer middleware
-const userSerializerMiddleware = (req, res, next) => {
+const userSerializer = (req, res, next) => {
   if (!res.data) {
     return next();
   }
@@ -43,23 +39,21 @@ const userSerializerMiddleware = (req, res, next) => {
   const serializeData = (data) => {
     if (data.newUser) {
       return {
-        newUser: userSerializer(data.newUser),
+        newUser: userSerializerMiddleware(data.newUser),
       };
     } else if (data.users) {
       return usersListSerializer(data.users);
     } else if (data.user) {
       return {
-        user: userSerializer(data.user),
+        user: userSerializerMiddleware(data.user),
       };
     } else if (data.bookings) {
-      // If bookings serialization is required, add it here
-      return data; // Default to raw data for now
+      return data;
     } else {
-      return data; // Fallback for other cases
+      return data;
     }
   };
 
-  // Remove circular references, serialize data, and convert to camelCase
   res.data = removeCircularReferences(res.data);
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);
@@ -68,5 +62,5 @@ const userSerializerMiddleware = (req, res, next) => {
 };
 
 module.exports = {
-  userSerializerMiddleware,
+  userSerializer,
 };
