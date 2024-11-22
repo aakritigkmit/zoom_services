@@ -11,7 +11,7 @@ const {
   updateCarSchema,
   updateCarStatusSchema,
 } = require("../validators/cars.validator");
-const { serializeCar } = require("../serializers/cars.serializer");
+const { carSerializer } = require("../serializers/cars.serializer");
 const commonHelpers = require("../helpers/common.helper");
 
 router.post(
@@ -21,7 +21,7 @@ router.post(
   upload.single("image"),
   validateRequest(createCarSchema),
   carController.create,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -36,7 +36,7 @@ router.get(
   "/:id",
   authenticate,
   carController.fetchById,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -45,7 +45,7 @@ router.get(
   authenticate,
   checkRole(["Car Owner", "Admin"]),
   carController.fetchBookings,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -55,17 +55,17 @@ router.put(
   checkRole(["Car Owner", "Admin"]),
   validateRequest(updateCarSchema),
   carController.update,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 
 router.patch(
-  "/:id/status",
+  "/:id",
   authenticate,
   checkRole(["Car Owner", "Admin"]),
   validateRequest(updateCarStatusSchema),
   carController.updateStatus,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -74,7 +74,7 @@ router.delete(
   authenticate,
   checkRole(["Admin"]),
   carController.remove,
-  serializeCar,
+  carSerializer,
   commonHelpers.responseHandler,
 );
 

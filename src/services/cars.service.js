@@ -181,15 +181,25 @@ const updateStatus = async (carId, status, userId) => {
 };
 
 const remove = async (carId) => {
-  const car = await Car.findByPk(carId);
-  if (!car) {
-    return null;
+  const transaction = await sequelize.transaction();
+
+  try {
+    const car = await Car.findByPk(carId, { transaction });
+
+    if (!car) {
+      await transaction.rollback();
+      return { statusCode: StatusCodes.NOT_FOUND, message: "Car not found" };
+    }
+
+    await car.destroy({ transaction });
+    await transaction.commit();
+
+    return { message: "Car deleted successfully" };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
   }
-
-  await car.destroy();
-  return car;
 };
-
 module.exports = {
   create,
   fetchBookings,
