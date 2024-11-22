@@ -2,7 +2,7 @@ const transactionService = require("../services/transactions.service");
 const { errorHandler } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
 
-const generate = async (req, res, next) => {
+const create = async (req, res, next) => {
   try {
     const transaction = await transactionService.create(req.body);
 
@@ -23,7 +23,7 @@ const fetchAll = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, ...filters } = req.query;
 
-    const result = await transactionService.getAll(filters, page, limit);
+    const result = await transactionService.fetchAll(filters, page, limit);
 
     res.data = { transactions: result };
     res.message = "Transactions fetched successfully";
@@ -42,7 +42,7 @@ const fetchById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const transaction = await transactionService.getById(id);
+    const transaction = await transactionService.fetchById(id);
 
     if (!transaction) {
       return throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
@@ -81,7 +81,7 @@ const remove = async (req, res, next) => {
 };
 
 module.exports = {
-  generate,
+  create,
   fetchAll,
   fetchById,
   remove,

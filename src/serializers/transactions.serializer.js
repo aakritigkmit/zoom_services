@@ -4,7 +4,6 @@ const {
   removeCircularReferences,
 } = require("../helpers/serializer.helper");
 
-// Serialize a single booking
 const bookingSerializer = (booking) => ({
   id: booking.id,
   userId: booking.user_id,
@@ -27,8 +26,7 @@ const bookingSerializer = (booking) => ({
   ...normalizeTimestamps(booking),
 });
 
-// Serialize a single transaction
-const transactionSerializer = (transaction) => ({
+const transactionSerializerMiddleware = (transaction) => ({
   id: transaction.id,
   transactionStatus: transaction.transaction_status,
   userId: transaction.user_id,
@@ -42,29 +40,26 @@ const transactionSerializer = (transaction) => ({
   ...normalizeTimestamps(transaction),
 });
 
-// Serialize a list of transactions
 const transactionsListSerializer = (transactionsData) => ({
-  data: transactionsData.data.map(transactionSerializer),
+  data: transactionsData.data.map(transactionSerializerMiddleware),
   pagination: transactionsData.pagination,
 });
 
-// Main transaction serializer middleware
-const transactionSerializerMiddleware = (req, res, next) => {
+const transactionSerializer = (req, res, next) => {
   if (!res.data) {
     return next();
   }
 
   const serializeData = (data) => {
     if (data.transaction) {
-      return { transaction: transactionSerializer(data.transaction) };
+      return { transaction: transactionSerializerMiddleware(data.transaction) };
     } else if (data.transactions) {
       return { transactions: transactionsListSerializer(data.transactions) };
     } else {
-      return data; // Fallback for unexpected data structure
+      return data;
     }
   };
 
-  // Remove circular references, serialize data, and convert to camelCase
   res.data = removeCircularReferences(res.data);
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);
@@ -73,5 +68,5 @@ const transactionSerializerMiddleware = (req, res, next) => {
 };
 
 module.exports = {
-  transactionSerializerMiddleware,
+  transactionSerializer,
 };

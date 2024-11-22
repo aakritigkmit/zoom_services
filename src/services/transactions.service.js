@@ -86,7 +86,7 @@ const create = async (data) => {
   }
 };
 
-const getAll = async (filters, page = 1, limit = 10) => {
+const fetchAll = async (filters, page = 1, limit = 10) => {
   const whereConditions = {};
 
   for (const [key, value] of Object.entries(filters)) {
@@ -126,7 +126,7 @@ const getAll = async (filters, page = 1, limit = 10) => {
   };
 };
 
-const getById = async (id) => {
+const fetchById = async (id) => {
   const transaction = await Transaction.findOne({
     where: { id },
     include: [
@@ -174,4 +174,4 @@ const remove = async (id) => {
   }
 };
 
-module.exports = { create, getAll, getById, remove };
+module.exports = { create, fetchAll, fetchById, remove };
