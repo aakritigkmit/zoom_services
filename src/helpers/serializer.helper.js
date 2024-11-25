@@ -1,6 +1,5 @@
 const _ = require("lodash");
 
-// Helper function to detect circular references
 const toCamelCase = (data, visited = new WeakSet()) => {
   if (Array.isArray(data)) {
     return data.map((item) => toCamelCase(item, visited));
@@ -36,7 +35,7 @@ const removeCircularReferences = (data) => {
     JSON.stringify(data, (key, value) => {
       if (typeof value === "object" && value !== null) {
         if (cache.has(value)) {
-          return; // Circular reference found, return undefined
+          return;
         }
         cache.add(value);
       }

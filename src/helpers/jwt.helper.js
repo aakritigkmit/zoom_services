@@ -15,8 +15,8 @@ exports.verifyToken = async (token) => {
   try {
     return jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
-    console.error("Token verification failed:", err.message); // Log specific JWT error
-    throw err; // Preserve original error for clarity
+    console.error("Token verification failed:", err.message);
+    throw err;
   }
 };
 
