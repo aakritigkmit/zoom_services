@@ -15,6 +15,7 @@ const registerSchema = Joi.object({
   phoneNumber: Joi.string()
     .pattern(/^[0-9]{10}$/)
     .required(),
+
   password: Joi.string().min(6).required(),
   // roleName: Joi.array().items(Joi.string()).required(),
   roleName: Joi.array()
