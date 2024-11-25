@@ -30,8 +30,6 @@ const bookingsSerializerMiddleware = (booking) => ({
   fare: booking.fare,
   feedback: booking.feedback,
   estimatedDistance: booking.estimated_distance,
-  user: booking.user ? userSerializer(booking.user) : null,
-  car: booking.car ? carSerializer(booking.car) : null,
   ...normalizeTimestamps(booking),
 });
 

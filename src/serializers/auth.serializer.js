@@ -11,13 +11,14 @@ const userSerializer = (user) => ({
   phoneNumber: user.phone_number,
   city: user.city,
   roles: user.roles || [],
-  ...normalizeTimestamps(user), // Normalize createdAt and updatedAt timestamps
+  ...normalizeTimestamps(user),
 });
 
 const authSerializer = (req, res, next) => {
+  // console.log(res);
   if (!res.data) {
     return next();
-  } // If there's no data, skip serialization.
+  }
 
   const serializeData = (data) => {
     if (data.user) {
@@ -34,11 +35,10 @@ const authSerializer = (req, res, next) => {
         otp: data.otp,
       };
     } else {
-      return data; // Fallback for other response structures.
+      return data;
     }
   };
 
-  // Remove circular references, convert to camelCase, and serialize.
   res.data = removeCircularReferences(res.data);
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);

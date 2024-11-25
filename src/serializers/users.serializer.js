@@ -4,11 +4,7 @@ const {
   removeCircularReferences,
 } = require("../helpers/serializer.helper");
 
-const roleSerializer = (role) => ({
-  id: role.id,
-  name: role.name,
-  ...normalizeTimestamps(role),
-});
+const roleSerializer = (role) => (typeof role === "string" ? role : role.name);
 
 const userSerializerMiddleware = (user) => ({
   id: user.id,
@@ -16,14 +12,12 @@ const userSerializerMiddleware = (user) => ({
   email: user.email,
   phoneNumber: user.phone_number,
   city: user.city,
-  roles: Array.isArray(user.roles)
-    ? user.roles.map((role) =>
-        typeof role === "string" ? { name: role } : roleSerializer(role),
-      )
-    : [],
-  ...normalizeTimestamps(user),
+  roles: Array.isArray(user.roles) ? user.roles.map(roleSerializer) : [],
+  createdAt: user.created_at,
+  updatedAt: user.updated_at,
 });
 
+// Serializer for lists of users.
 const usersListSerializer = (usersData) => ({
   totalUsers: usersData.totalUsers,
   currentPage: usersData.currentPage,
@@ -31,11 +25,12 @@ const usersListSerializer = (usersData) => ({
   users: usersData.users.map(userSerializerMiddleware),
 });
 
+// Main serializer middleware for the response.
 const userSerializer = (req, res, next) => {
   if (!res.data) {
     return next();
   }
-  // console.log("====================>", res.data);
+
   const serializeData = (data) => {
     if (data.newUser) {
       return {
@@ -57,6 +52,8 @@ const userSerializer = (req, res, next) => {
   res.data = removeCircularReferences(res.data);
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);
+
+  console.log(">>>>>>res.data", res.data);
 
   next();
 };
