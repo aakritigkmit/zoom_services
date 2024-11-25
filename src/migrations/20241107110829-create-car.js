@@ -9,7 +9,7 @@ module.exports = {
         primaryKey: true,
         allowNull: false,
       },
-      user_id: {
+      owner_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
@@ -60,6 +60,11 @@ module.exports = {
       status: {
         type: Sequelize.ENUM("available", "unavailable", "booked"),
         allowNull: false,
+      },
+      chassis_number: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
       },
       created_at: {
         type: Sequelize.DATE,

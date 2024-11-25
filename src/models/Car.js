@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Car.belongsTo(models.User, { foreignKey: "user_id", as: "user" });
+      Car.belongsTo(models.User, { foreignKey: "owner_id", as: "user" });
       Car.hasMany(models.Booking, { foreignKey: "car_id", as: "bookings" });
     }
   }
@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      user_id: {
+      owner_id: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
