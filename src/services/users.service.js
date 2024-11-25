@@ -6,6 +6,9 @@ const {
   Car,
   Transaction,
 } = require("../models");
+
+const { throwCustomError } = require("../helpers/common.helper");
+
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
@@ -16,11 +19,10 @@ const create = async (payload) => {
   try {
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      throw new Error("User already exists");
+      throw throwCustomError("User already exists", StatusCodes.BAD_REQUEST);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log("phoneNumber", phoneNumber);
     const newUser = await User.create({
       name,
       email,
@@ -28,6 +30,7 @@ const create = async (payload) => {
       phone_number: phoneNumber,
       roles,
       city,
+      verified: true,
     });
 
     const role = await Role.findOne({ where: { name: roles } });
@@ -40,6 +43,7 @@ const create = async (payload) => {
 
     return newUser;
   } catch (error) {
+    console.log(error.message);
     await rollBack.rollback();
     throw error;
   }
@@ -72,12 +76,33 @@ const fetchUsers = async (page = 1, pageSize = 10) => {
   };
 };
 
-const fetchById = async (id, reqUser) => {
+const fetchCurrentUser = async (userId) => {
+  const user = await User.findByPk(userId, {
+    attributes: { exclude: ["password"] },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+};
+
+const fetchById = async (id, loggedInUser) => {
+  if (
+    loggedInUser.id !== id &&
+    !loggedInUser.roles.some((role) => role.name === "Admin")
+  ) {
+    return { statusCode: StatusCodes.FORBIDDEN, message: "Forbidden" };
+  }
+
   const user = await User.findOne({
     where: { id },
+
     include: {
       model: Role,
       as: "roles",
+      attributes: ["name"],
       through: { attributes: [] },
       required: true,
     },
@@ -87,12 +112,6 @@ const fetchById = async (id, reqUser) => {
     return { statusCode: StatusCodes.NOT_FOUND, message: "User not found" };
   }
 
-  if (
-    reqUser.id !== id &&
-    !reqUser.roles.some((role) => role.name === "Admin")
-  ) {
-    return { statusCode: StatusCodes.FORBIDDEN, message: "Forbidden" };
-  }
   console.log("FetchById Services", user);
   return { user };
 };
@@ -103,16 +122,23 @@ const update = async (userId, updateData) => {
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
+
     const [rowsUpdated, [updatedUser]] = await User.update(updateData, {
       where: { id: userId },
       returning: true,
+      transaction: rollBack,
     });
+
     if (rowsUpdated === 0) {
       throw new Error("User not found or no changes made");
     }
+
+    const safeUpdatedUser = updatedUser.get({ plain: true });
+    delete safeUpdatedUser.password;
+
     await rollBack.commit();
 
-    return updatedUser;
+    return safeUpdatedUser;
   } catch (error) {
     await rollBack.rollback();
     throw error;
@@ -148,6 +174,7 @@ const fetchBookings = async (userId, page = 1, pageSize = 10) => {
 
 const fetchTransactions = async (userId, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
+
   const transactions = await Transaction.findAndCountAll({
     where: { user_id: userId },
     include: [
@@ -168,6 +195,7 @@ const fetchTransactions = async (userId, page = 1, limit = 10) => {
     offset,
     order: [["created_at", "DESC"]],
   });
+
   return {
     total: transactions.count,
     pages: Math.ceil(transactions.count / limit),
@@ -180,6 +208,13 @@ const remove = async (id) => {
   const rollBack = await sequelize.transaction();
   try {
     const user = await User.findByPk(id);
+
+    if (
+      req.user.id !== id &&
+      !req.user.roles.some((role) => role.name === "Admin")
+    ) {
+      return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+    }
 
     if (!user) {
       return { statusCode: StatusCodes.NOT_FOUND, message: "User not found" };
@@ -198,6 +233,7 @@ const remove = async (id) => {
 module.exports = {
   fetchTransactions,
   fetchBookings,
+  fetchCurrentUser,
   remove,
   update,
   fetchById,
