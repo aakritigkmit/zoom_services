@@ -47,6 +47,11 @@ module.exports = {
         type: Sequelize.DECIMAL,
         allowNull: false,
       },
+      amount: {
+        type: Sequelize.DECIMAL,
+        allowNull: false,
+        defaultValue: 0,
+      },
       created_at: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
