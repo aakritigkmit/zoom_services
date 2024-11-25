@@ -16,7 +16,7 @@ const create = async (req, res, next) => {
     res.statusCode = StatusCodes.CREATED;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to create booking");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -24,9 +24,6 @@ const fetchById = async (req, res, next) => {
   const bookingId = req.params.id;
   try {
     const booking = await bookingService.fetchById(bookingId);
-    if (!booking) {
-      throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
-    }
 
     res.data = { booking };
     res.message = "Booking fetched successfully";
@@ -34,7 +31,7 @@ const fetchById = async (req, res, next) => {
 
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to fetch booking");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -51,7 +48,7 @@ const cancelBooking = async (req, res, next) => {
 
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to cancel booking");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -69,7 +66,7 @@ const update = async (req, res, next) => {
 
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to update booking details");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -77,10 +74,6 @@ const submitFeedback = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
     const { feedback } = req.body;
-
-    if (!feedback) {
-      throwCustomError("Feedback is required", StatusCodes.BAD_REQUEST);
-    }
 
     const userId = req.user.id;
     const result = await bookingService.submitFeedback({
@@ -94,7 +87,7 @@ const submitFeedback = async (req, res, next) => {
 
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to submit feedback");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -110,20 +103,13 @@ const monthlySummary = async (req, res, next) => {
     res.statusCode = StatusCodes.OK;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to retrieve monthly summary");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
 const getBookings = async (req, res, next) => {
   try {
     const { month, year } = req.query;
-
-    if (!month || !year || isNaN(month) || isNaN(year)) {
-      throwCustomError(
-        "Invalid or missing month and year values",
-        StatusCodes.BAD_REQUEST,
-      );
-    }
 
     const bookings = await bookingService.getBookings(month, year);
 
@@ -133,8 +119,29 @@ const getBookings = async (req, res, next) => {
 
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to fetch bookings");
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
+};
+
+const fetchBookings = async (req, res, next) => {
+  try {
+    const { month, year } = req.query;
+
+    const bookings = await getBookings(Number(month), Number(year));
+
+    res.data = {
+      message: "Bookings fetched successfully.",
+      data: bookings,
+    };
+    res.statusCode = 200;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  fetchBookings,
 };
 
 const downloadMonthlyBookings = async (req, res, next) => {
@@ -149,7 +156,7 @@ const downloadMonthlyBookings = async (req, res, next) => {
     res.attachment(`bookings_${month || "all"}_${year || "all"}.csv`);
     res.send(csvData);
   } catch (error) {
-    errorHandler(res, error, "Failed to download bookings");
+    errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
 
