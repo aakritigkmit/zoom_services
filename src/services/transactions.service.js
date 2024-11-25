@@ -1,10 +1,9 @@
 const { Transaction, Booking, Car, User, sequelize } = require("../models");
 const { sendTransactionEmail } = require("../utils/email.js");
 const { throwCustomError } = require("../helpers/common.helper");
+const { StatusCodes } = require("http-status-codes");
 
 const create = async (data) => {
-  // console.log(data);
-
   const { user_id, booking_id } = data;
 
   const t = await sequelize.transaction();
@@ -25,9 +24,7 @@ const create = async (data) => {
       throw new Error("User not found for this booking");
     }
 
-    const car = booking.car; //line 6 mai booking saari aarhi hai for he specific booking id
-    //from that we are extracting cars bookings
-
+    const car = booking.car;
     if (car.status === "unavailable") {
       throw new Error("Car is not available for rent");
     }
@@ -149,7 +146,7 @@ const fetchById = async (id) => {
   });
 
   if (!transaction) {
-    throwCustomError("Transaction not found", 404);
+    return throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
   }
 
   return transaction;

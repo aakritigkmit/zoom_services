@@ -13,6 +13,7 @@ const create = async (req, res, next) => {
   } catch (error) {
     errorHandler(
       res,
+      error,
       error.message,
       error.statusCode || StatusCodes.BAD_REQUEST,
     );
@@ -32,6 +33,7 @@ const fetchAll = async (req, res, next) => {
   } catch (error) {
     errorHandler(
       res,
+      error,
       error.message,
       error.statusCode || StatusCodes.BAD_REQUEST,
     );
@@ -44,10 +46,6 @@ const fetchById = async (req, res, next) => {
 
     const transaction = await transactionService.fetchById(id);
 
-    if (!transaction) {
-      return throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
-    }
-
     res.data = { transaction };
     res.message = "Transaction fetched successfully";
     res.statusCode = StatusCodes.OK;
@@ -55,6 +53,7 @@ const fetchById = async (req, res, next) => {
   } catch (error) {
     errorHandler(
       res,
+      error,
       error.message,
       error.statusCode || StatusCodes.BAD_REQUEST,
     );
@@ -74,6 +73,7 @@ const remove = async (req, res, next) => {
   } catch (error) {
     errorHandler(
       res,
+      error,
       error.message,
       error.statusCode || StatusCodes.BAD_REQUEST,
     );
