@@ -15,7 +15,7 @@ const registerSchema = Joi.object({
       Joi.string()
         .valid("Car Owner", "Customer")
         .not(Joi.string().valid("Admin"))
-        .required(),
+        .default("Customer"),
     )
     .required(),
   city: Joi.string().min(3).max(100).required(),
