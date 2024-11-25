@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
         otherKey: "role_id",
         as: "roles",
       });
-      User.hasMany(models.Car, { foreignKey: "user_id", as: "cars" });
+      User.hasMany(models.Car, { foreignKey: "owner_id", as: "cars" });
       User.hasMany(models.Booking, { foreignKey: "user_id", as: "bookings" });
     }
   }
@@ -49,6 +49,10 @@ module.exports = (sequelize) => {
       password: {
         type: DataTypes.STRING,
         allowNull: false,
+      },
+      verified: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
       },
     },
     {
