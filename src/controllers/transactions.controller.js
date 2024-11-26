@@ -22,9 +22,7 @@ const create = async (req, res, next) => {
 
 const fetchAll = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, ...filters } = req.query;
-
-    const result = await transactionService.fetchAll(filters, page, limit);
+    const result = await transactionService.fetchAll(req.query);
 
     res.data = { transactions: result };
     res.message = "Transactions fetched successfully";
