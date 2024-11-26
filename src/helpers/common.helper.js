@@ -19,7 +19,6 @@ function errorHandler(
 }
 
 function responseHandler(req, res) {
-  console.log(res.data);
   res.status(res.statusCode).json({ message: res.message, data: res.data });
 }
 
