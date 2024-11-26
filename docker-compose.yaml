@@ -1,0 +1,28 @@
+services:
+  nodeapp:
+    build:
+      context: .
+    container_name: online_exam_portal
+    ports:
+      - "5000:3000"
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres
+    container_name: oep_postgres
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - "./data:/var/lib/postgresql/data"
+      - "./dumps:/dumps"
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:alpine
+    container_name: oep_redis
+    ports:
+      - 6379:6379
