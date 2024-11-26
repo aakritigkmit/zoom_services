@@ -13,11 +13,11 @@ const create = async (req, res, next) => {
     res.data = { car };
     res.message = "Car created successfully";
 
-    console.log("create car", res.data);
     res.statusCode = StatusCodes.CREATED;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to create car");
+    console.log(error);
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -27,7 +27,6 @@ const fetchBookings = async (req, res, next) => {
     const carId = req.params.id;
 
     const bookings = await carService.fetchBookings(userId, carId);
-    console.log("bookings", bookings);
 
     res.data = { bookings: bookings.length ? bookings : null };
     res.message = bookings.length
@@ -36,11 +35,10 @@ const fetchBookings = async (req, res, next) => {
 
     res.statusCode = StatusCodes.CREATED;
 
-    console.log("fetchCARBookings Controllers", res.data);
     res.statusCode = bookings.length ? StatusCodes.OK : StatusCodes.NOT_FOUND;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to fetch bookings of the car");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -61,19 +59,15 @@ const findNearestCars = async (req, res, next) => {
       parseFloat(longitude),
       radius ? parseFloat(radius) : 10,
     );
-    console.log(nearbyCars);
-    if (nearbyCars.length === 0) {
-      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
-    }
 
-    res.data = { car: nearbyCars };
+    res.data = { cars: nearbyCars };
     res.message = "Nearby cars fetched successfully";
     res.statusCode = StatusCodes.OK;
 
     next();
   } catch (error) {
     console.log(error);
-    errorHandler(res, error, "Failed to find nearest cars");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -91,21 +85,19 @@ const fetchById = async (req, res, next) => {
     res.message = "Car fetched successfully";
     res.statusCode = StatusCodes.OK;
 
-    console.log("car fetchByCarId", res.data);
-    res.statusCode = StatusCodes.OK;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to fetch car");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
 const update = async (req, res, next) => {
   try {
     const carId = req.params.id;
-    const userId = req.user.id;
+    const ownerId = req.user.id;
     const updatedData = req.body;
 
-    const updatedCar = await carService.update(carId, updatedData, userId);
+    const updatedCar = await carService.update(carId, updatedData, ownerId);
 
     if (!updatedCar) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
@@ -116,7 +108,7 @@ const update = async (req, res, next) => {
     res.statusCode = StatusCodes.OK;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to update car details");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -133,7 +125,7 @@ const updateStatus = async (req, res, next) => {
     res.statusCode = StatusCodes.OK;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to update car status");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 
@@ -151,7 +143,7 @@ const remove = async (req, res, next) => {
     res.statusCode = StatusCodes.NO_CONTENT;
     next();
   } catch (error) {
-    errorHandler(res, error, "Failed to delete car");
+    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
 

@@ -35,6 +35,22 @@ router.get(
 );
 
 router.get(
+  "/me",
+  authenticate,
+  userController.fetchCurrentUser,
+  userSerializer,
+  commonHelpers.responseHandler,
+);
+
+router.put(
+  "/me",
+  authenticate,
+  userController.updateCurrentUserDetails,
+  userSerializer,
+  commonHelpers.responseHandler,
+);
+
+router.get(
   "/:id",
   authenticate,
   validateRequest(fetchUserByIdSchema, true),
@@ -46,6 +62,7 @@ router.get(
 router.get(
   "/:id/transactions",
   authenticate,
+  checkRole(["Admin", "Customer"]),
   userController.fetchTransactions,
   userSerializer,
   commonHelpers.responseHandler,

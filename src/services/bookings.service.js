@@ -37,7 +37,7 @@ const create = async (data, email, userId) => {
       fare: totalFare,
       user_id: userId,
     });
-    console.log(newBooking);
+
     await rollBack.commit();
 
     return newBooking;
@@ -48,6 +48,11 @@ const create = async (data, email, userId) => {
 };
 
 const fetchById = async (id) => {
+  const booking = await Booking.findByPk(id);
+
+  if (!booking) {
+    throw new Error("Booking not found");
+  }
   return await Booking.findByPk(id);
 };
 
@@ -56,7 +61,7 @@ const update = async (bookingId, updatedData, userId) => {
 
   try {
     const booking = await Booking.findByPk(bookingId, { transaction: t });
-    console.log("booking", booking);
+
     if (!booking) {
       throw new Error("Booking not found");
     }
@@ -88,7 +93,6 @@ const cancelBooking = async (bookingId, userId) => {
     include: [{ model: User, as: "user", attributes: ["name", "email"] }],
   });
 
-  console.log(booking);
   if (!booking) {
     throw new Error(
       "Booking not found or you're not authorized to cancel this booking.",
@@ -135,6 +139,7 @@ const monthlySummary = async (year = new Date().getFullYear()) => {
         "month",
       ],
       [sequelize.fn("SUM", sequelize.col("fare")), "total_revenue"],
+
       [sequelize.fn("COUNT", sequelize.col("id")), "total_bookings"],
     ],
     where: sequelize.where(
@@ -156,17 +161,35 @@ const monthlySummary = async (year = new Date().getFullYear()) => {
 };
 
 const getBookings = async (month, year) => {
-  const bookings = await Booking.findAll({
-    where: sequelize.and(
+  const whereCondition = [];
+
+  if (month && (isNaN(month) || month < 1 || month > 12)) {
+    throwCustomError(
+      "Invalid month provided. It should be between 1 and 12.",
+      400,
+    );
+  }
+
+  if (month) {
+    whereCondition.push(
       sequelize.where(
         sequelize.fn("EXTRACT", sequelize.literal('MONTH FROM "start_date"')),
         month,
       ),
+    );
+  }
+
+  if (year) {
+    whereCondition.push(
       sequelize.where(
         sequelize.fn("EXTRACT", sequelize.literal('YEAR FROM "start_date"')),
         year,
       ),
-    ),
+    );
+  }
+
+  const bookings = await Booking.findAll({
+    where: whereCondition.length > 0 ? sequelize.and(...whereCondition) : {}, // Use filters if present
     include: [
       { model: Car, as: "car", attributes: ["model", "type"] },
       { model: User, as: "user", attributes: ["name", "email"] },
@@ -175,33 +198,6 @@ const getBookings = async (month, year) => {
 
   return bookings;
 };
-
-// const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
-//   const offset = (page - 1) * pageSize;
-
-//   const { count, rows: bookings } = await Booking.findAndCountAll({
-//     where: {
-//       user_id: userId,
-//     },
-//     include: [
-//       {
-//         model: Car,
-//         as: "car",
-//         attributes: ["id", "model", "year", "fuel_type", "city", "status"],
-//       },
-//     ],
-//     order: [["start_date", "DESC"]],
-//     limit: pageSize,
-//     offset,
-//   });
-
-//   return {
-//     totalBookings: count,
-//     currentPage: page,
-//     totalPages: Math.ceil(count / pageSize),
-//     bookings,
-//   };
-// };
 
 const downloadMonthlyBookings = async ({ month, year }) => {
   const whereConditions = {};

@@ -9,7 +9,6 @@ const create = async (carData, ownerId, imagePath) => {
 
   try {
     const cleanCarData = { ...carData };
-    // console.log("cleanCarData", cleanCarData);
     const latitude = parseFloat(carData.latitude);
     const longitude = parseFloat(carData.longitude);
     const pricePerKm = parseFloat(carData.price_per_km);
@@ -18,13 +17,14 @@ const create = async (carData, ownerId, imagePath) => {
 
     const newCar = await Car.create({
       ...cleanCarData,
-      user_id: ownerId,
+      _id: ownerId,
       image: imagePath,
       latitude,
       longitude,
       price_per_km: pricePerKm,
       price_per_hr: pricePerHr,
       year,
+      owner_id: ownerId,
     });
 
     console.log("newCar", newCar);
@@ -60,7 +60,7 @@ const create = async (carData, ownerId, imagePath) => {
 
 const fetchBookings = async (ownerId, carId) => {
   const car = await Car.findOne({
-    where: { id: carId, user_id: ownerId },
+    where: { id: carId, owner_id: ownerId },
     attributes: ["id", "model", "type", "status"],
   });
 
@@ -68,7 +68,6 @@ const fetchBookings = async (ownerId, carId) => {
     throwCustomError("This car does not belong to you", 403);
   }
 
-  // Fetch bookings for the specific car
   const bookings = await Booking.findAll({
     where: { car_id: car.id },
     include: [{ model: User, as: "user", attributes: ["id", "name", "email"] }],
@@ -107,27 +106,34 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
           [Op.notIn]: ["booked", "unavailable"],
         },
       },
-      attributes: ["id", "status"],
+      attributes: ["id", "status", "model"],
     });
-    console.log("availaivle cars", availableCars);
     const availableCarIds = availableCars.map((car) => car.id);
-    return cars
+    const nearbyCars = cars
       .filter((car) => availableCarIds.includes(car[0]))
-      .map((car) => ({
-        id: car[0],
-        distance: parseFloat(car[1]),
-      }));
+      .map((car) => {
+        const carDetails = availableCars.find(
+          (availableCar) => availableCar.id === car[0],
+        );
+        return {
+          id: car[0],
+          model: carDetails ? carDetails.model : "Unknown",
+          distance: parseFloat(car[1]),
+        };
+      });
+
+    return nearbyCars;
   } catch (error) {
     console.error("Error fetching nearby cars:", error);
     throw new Error("Failed to retrieve nearby cars from Redis");
   }
 };
 
-const fetchById = async (id) => {
-  return await Car.findByPk(id);
+const fetchById = async (carId) => {
+  return await Car.findByPk(carId);
 };
 
-const update = async (carId, updatedData, userId) => {
+const update = async (carId, updatedData, ownerId) => {
   const t = await sequelize.transaction();
   try {
     const car = await Car.findByPk(carId, { transaction: t });
@@ -136,16 +142,18 @@ const update = async (carId, updatedData, userId) => {
       throw new Error("Car not found");
     }
 
-    if (userId !== car.user_id) {
+    if (ownerId !== car.owner_id) {
       throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
-
+    // car.year = updated.year;
+    // await car.save();
     await car.update(updatedData, { transaction: t });
 
     await t.commit();
 
     return car;
   } catch (error) {
+    console.log(error);
     await t.rollback();
     throw error;
   }
@@ -160,7 +168,7 @@ const updateStatus = async (carId, status, userId) => {
       throw new Error("Car not found");
     }
 
-    if (car.user_id !== userId) {
+    if (car.owner_id !== userId) {
       throwCustomError(
         "Forbidden: You don't have permission to update this car's status.",
         StatusCodes.FORBIDDEN,

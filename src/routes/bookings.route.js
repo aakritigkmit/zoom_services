@@ -18,19 +18,19 @@ router.post(
 );
 
 router.get(
-  "/summary",
+  "/details",
   authenticate,
   checkRole(["Admin"]),
-  bookingController.monthlySummary,
+  bookingController.getBookings,
   bookingSerializer,
   commonHelpers.responseHandler,
 );
 
 router.get(
-  "/details",
+  "/summary",
   authenticate,
   checkRole(["Admin"]),
-  bookingController.getBookings,
+  bookingController.monthlySummary,
   bookingSerializer,
   commonHelpers.responseHandler,
 );
@@ -69,7 +69,7 @@ router.patch(
   commonHelpers.responseHandler,
 );
 
-router.post(
+router.patch(
   "/:id/feedback",
   authenticate,
   bookingController.submitFeedback,

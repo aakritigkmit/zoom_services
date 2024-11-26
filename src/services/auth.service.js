@@ -6,6 +6,7 @@ const { sendOtpEmail } = require("../utils/email");
 const { User, Role } = require("../models");
 const { StatusCodes } = require("http-status-codes");
 const { throwCustomError } = require("../helpers/common.helper");
+
 const sendOtp = async (email) => {
   const user = await User.findOne({ where: { email } });
 
@@ -91,6 +92,7 @@ const login = async (email, password) => {
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       throw { statusCode: 400, message: "Invalid credentials" };
     }
@@ -99,6 +101,7 @@ const login = async (email, password) => {
     return token;
   } catch (error) {
     console.error("Login error:", error.message);
+
     throw {
       statusCode: error.statusCode || 400,
       message: error.message || "An error occurred during login.",
