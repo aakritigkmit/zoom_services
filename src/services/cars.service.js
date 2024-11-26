@@ -15,7 +15,7 @@ const create = async (carData, ownerId, imagePath) => {
     const pricePerHr = parseFloat(carData.price_per_hr);
     const year = parseInt(carData.year, 10);
 
-    const newCar = await Car.create({
+    const car = await Car.create({
       ...cleanCarData,
       _id: ownerId,
       image: imagePath,
@@ -27,18 +27,21 @@ const create = async (carData, ownerId, imagePath) => {
       owner_id: ownerId,
     });
 
-    console.log("newCar", newCar);
+    console.log("car", car);
     const carId = newCar.id;
 
     if (isNaN(latitude) || isNaN(longitude)) {
-      throw new Error("Latitude and longitude must be valid numbers.");
+      throwCustomError(
+        "Latitude and longitude must be valid numbers.",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
-    if (!client) {
-      throw new Error("Redis client is not initialized.");
-    }
     if (!latitude || !longitude) {
-      throw new Error("Latitude and longitude are required for geolocation.");
+      throwCustomError(
+        "Latitude and longitude are required for geolocation.",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     await client.sendCommand([
@@ -51,8 +54,9 @@ const create = async (carData, ownerId, imagePath) => {
 
     await t.commit();
 
-    return newCar;
+    return car;
   } catch (error) {
+    console.log(error);
     await t.rollback();
     throw error;
   }
@@ -65,7 +69,7 @@ const fetchBookings = async (ownerId, carId) => {
   });
 
   if (!car) {
-    throwCustomError("This car does not belong to you", 403);
+    throwCustomError("This car does not belong to you", StatusCodes.FORBIDDEN);
   }
 
   const bookings = await Booking.findAll({
@@ -89,14 +93,13 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
       "WITHDIST",
       "ASC",
     ]);
-    // console.log(cars);
 
     if (!cars.length) {
       return [];
     }
 
     const carIds = cars.map((car) => car[0]);
-    console.log("cars", carIds);
+
     const availableCars = await Car.findAll({
       where: {
         id: {
@@ -108,13 +111,16 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
       },
       attributes: ["id", "status", "model"],
     });
+
     const availableCarIds = availableCars.map((car) => car.id);
+
     const nearbyCars = cars
       .filter((car) => availableCarIds.includes(car[0]))
       .map((car) => {
         const carDetails = availableCars.find(
           (availableCar) => availableCar.id === car[0],
         );
+
         return {
           id: car[0],
           model: carDetails ? carDetails.model : "Unknown",
@@ -125,7 +131,7 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
     return nearbyCars;
   } catch (error) {
     console.error("Error fetching nearby cars:", error);
-    throw new Error("Failed to retrieve nearby cars from Redis");
+    throw error;
   }
 };
 
@@ -139,14 +145,13 @@ const update = async (carId, updatedData, ownerId) => {
     const car = await Car.findByPk(carId, { transaction: t });
 
     if (!car) {
-      throw new Error("Car not found");
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
 
     if (ownerId !== car.owner_id) {
       throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
-    // car.year = updated.year;
-    // await car.save();
+
     await car.update(updatedData, { transaction: t });
 
     await t.commit();
@@ -165,7 +170,7 @@ const updateStatus = async (carId, status, userId) => {
   try {
     const car = await Car.findByPk(carId, { transaction: t });
     if (!car) {
-      throw new Error("Car not found");
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
 
     if (car.owner_id !== userId) {
