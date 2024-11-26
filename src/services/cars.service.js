@@ -4,7 +4,7 @@ const { client } = require("../config/redis");
 const { StatusCodes } = require("http-status-codes");
 const { throwCustomError } = require("../helpers/common.helper.js");
 
-const createCar = async (carData, ownerId, imagePath) => {
+const create = async (carData, ownerId, imagePath) => {
   const t = await sequelize.transaction();
 
   try {
@@ -58,7 +58,7 @@ const createCar = async (carData, ownerId, imagePath) => {
   }
 };
 
-const fetchCarBookings = async (ownerId, carId) => {
+const fetchBookings = async (ownerId, carId) => {
   const car = await Car.findOne({
     where: { id: carId, user_id: ownerId },
     attributes: ["id", "model", "type", "status"],
@@ -123,11 +123,11 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
   }
 };
 
-const fetchByCarId = async (id) => {
+const fetchById = async (id) => {
   return await Car.findByPk(id);
 };
 
-const updateCarDetails = async (carId, updatedData, userId) => {
+const update = async (carId, updatedData, userId) => {
   const t = await sequelize.transaction();
   try {
     const car = await Car.findByPk(carId, { transaction: t });
@@ -151,7 +151,7 @@ const updateCarDetails = async (carId, updatedData, userId) => {
   }
 };
 
-const updateCarStatus = async (carId, status, userId) => {
+const updateStatus = async (carId, status, userId) => {
   const t = await sequelize.transaction();
 
   try {
@@ -180,22 +180,32 @@ const updateCarStatus = async (carId, status, userId) => {
   }
 };
 
-const removeCar = async (carId) => {
-  const car = await Car.findByPk(carId);
-  if (!car) {
-    return null;
+const remove = async (carId) => {
+  const transaction = await sequelize.transaction();
+
+  try {
+    const car = await Car.findByPk(carId, { transaction });
+
+    if (!car) {
+      await transaction.rollback();
+      return { statusCode: StatusCodes.NOT_FOUND, message: "Car not found" };
+    }
+
+    await car.destroy({ transaction });
+    await transaction.commit();
+
+    return { message: "Car deleted successfully" };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
   }
-
-  await car.destroy();
-  return car;
 };
-
 module.exports = {
-  removeCar,
-  updateCarStatus,
-  updateCarDetails,
-  fetchByCarId,
+  create,
+  fetchBookings,
   findNearestCars,
-  createCar,
-  fetchCarBookings,
+  fetchById,
+  update,
+  updateStatus,
+  remove,
 };

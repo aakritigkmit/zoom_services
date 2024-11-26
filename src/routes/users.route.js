@@ -12,7 +12,7 @@ const {
 } = require("../validators/users.validator");
 
 const commonHelpers = require("../helpers/common.helper");
-const { userSerializerMiddleware } = require("../serializers/users.serializer");
+const { userSerializer } = require("../serializers/users.serializer");
 
 const router = express.Router();
 
@@ -21,16 +21,16 @@ router.post(
   authenticate,
   validateRequest(registerSchema),
   checkRole(["Admin"]),
-  userController.register,
-  userSerializerMiddleware,
+  userController.create,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 
 router.get(
   "/",
   authenticate,
-  userController.fetchUser,
-  userSerializerMiddleware,
+  userController.fetchUsers,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -39,22 +39,22 @@ router.get(
   authenticate,
   validateRequest(fetchUserByIdSchema, true),
   userController.fetchById,
-  userSerializerMiddleware,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 
 router.get(
   "/:id/transactions",
   authenticate,
-  userController.fetchUserTransactions,
-  userSerializerMiddleware,
+  userController.fetchTransactions,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 router.get(
   "/:id/bookings",
   authenticate,
-  userController.fetchUserBookings,
-  userSerializerMiddleware,
+  userController.fetchBookings,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -63,8 +63,8 @@ router.patch(
   authenticate,
   validateRequest(fetchUserByIdSchema, true),
   validateRequest(editUserDetailsSchema),
-  userController.editUserDetails,
-  userSerializerMiddleware,
+  userController.update,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -74,8 +74,8 @@ router.delete(
   validateRequest(deleteUserByIdSchema, true),
   validateRequest(fetchUserByIdSchema, true),
   checkRole(["Admin"]),
-  userController.removeUser,
-  userSerializerMiddleware,
+  userController.remove,
+  userSerializer,
   commonHelpers.responseHandler,
 );
 

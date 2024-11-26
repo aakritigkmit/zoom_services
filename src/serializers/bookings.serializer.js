@@ -1,81 +1,3 @@
-// const serializeSingleBooking = (booking) => {
-//   return (serializedBooking = {
-//     id: booking.id,
-//     startDate: booking.start_date,
-//     endDate: booking.end_date,
-//     status: booking.status,
-//     fare: booking.fare,
-//     user: booking.user
-//       ? {
-//           id: booking.user.id,
-//           name: booking.user.name,
-//           email: booking.user.email,
-//         }
-//       : null,
-//     car: booking.car
-//       ? {
-//           id: booking.car.id,
-//           model: booking.car.model,
-//           type: booking.car.type,
-//         }
-//       : null,
-//   });
-// };
-
-// const serializeAllBookings = (req, res, next) => {
-//   const { data } = res;
-//   console.log(data);
-
-//   console.log(">>> ", Object.keys(data));
-//   console.log(">>> ", data.message);
-
-//   if (data.bookings) {
-//     let serializedBookings;
-//     if (data.bookings.length === 0) {
-//       serializedBookings = [];
-//     }
-
-//     const bookings = data.bookings;
-
-//     serializedBookings = bookings.map((booking) => {
-//       return serializeSingleBooking(booking);
-//     });
-
-//     res.data = {
-//       bookings: serializedBookings,
-//       message: data.message || "Bookings retrieved successfully",
-//     };
-
-//     return next();
-//   }
-
-//   if (data.booking) {
-//     console.log(Object.keys(data));
-//     let serializedBooking;
-
-//     const booking = data.booking;
-
-//     if (Object.keys(booking).length === 0) {
-//       serializedBooking = {};
-//     }
-
-//     serializedBooking = serializeSingleBooking(booking);
-
-//     res.data = {
-//       booking: serializedBooking,
-//       message: data.message || "Bookings retrieved successfully",
-//     };
-
-//     return next();
-//   }
-
-//   return next();
-// };
-
-// module.exports = {
-//   serializeAllBookings,
-// };
-
 const {
   toCamelCase,
   normalizeTimestamps,
@@ -90,7 +12,6 @@ const carSerializer = (car) => ({
   ...normalizeTimestamps(car),
 });
 
-// Serialize a single user
 const userSerializer = (user) => ({
   id: user.id,
   name: user.name,
@@ -98,8 +19,7 @@ const userSerializer = (user) => ({
   ...normalizeTimestamps(user),
 });
 
-// Serialize a single booking
-const bookingSerializer = (booking) => ({
+const bookingsSerializerMiddleware = (booking) => ({
   id: booking.id,
   userId: booking.user_id,
   carId: booking.car_id,
@@ -115,16 +35,14 @@ const bookingSerializer = (booking) => ({
   ...normalizeTimestamps(booking),
 });
 
-// Serialize a list of bookings
 const bookingsListSerializer = (bookingsData) => ({
   totalBookings: bookingsData.totalBookings,
   currentPage: bookingsData.currentPage,
   totalPages: bookingsData.totalPages,
-  bookings: bookingsData.bookings.map(bookingSerializer),
+  bookings: bookingsData.bookings.map(bookingsSerializerMiddleware),
 });
 
-// Main serializer middleware
-const bookingsSerializerMiddleware = (req, res, next) => {
+const bookingSerializer = (req, res, next) => {
   if (!res.data) {
     return next();
   }
@@ -132,20 +50,19 @@ const bookingsSerializerMiddleware = (req, res, next) => {
   const serializeData = (data) => {
     if (data.newBooking) {
       return {
-        newBooking: bookingSerializer(data.newBooking),
+        newBooking: bookingsSerializerMiddleware(data.newBooking),
       };
     } else if (data.bookings) {
       return bookingsListSerializer(data.bookings);
     } else if (data.booking) {
       return {
-        booking: bookingSerializer(data.booking),
+        booking: bookingsSerializerMiddleware(data.booking),
       };
     } else {
       return data; // Fallback for other cases
     }
   };
 
-  // Remove circular references, serialize data, and convert to camelCase
   res.data = removeCircularReferences(res.data);
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);

@@ -9,7 +9,7 @@ const {
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
-const createUser = async (payload) => {
+const create = async (payload) => {
   const { name, email, phoneNumber, password, roles, city } = payload;
   const rollBack = await sequelize.transaction();
 
@@ -97,7 +97,7 @@ const fetchById = async (id, reqUser) => {
   return { user };
 };
 
-const editUserDetails = async (userId, updateData) => {
+const update = async (userId, updateData) => {
   const rollBack = await sequelize.transaction();
   try {
     if (updateData.password) {
@@ -119,7 +119,7 @@ const editUserDetails = async (userId, updateData) => {
   }
 };
 
-const fetchUserBookings = async (userId, page = 1, pageSize = 10) => {
+const fetchBookings = async (userId, page = 1, pageSize = 10) => {
   const offset = (page - 1) * pageSize;
 
   const { count, rows: bookings } = await Booking.findAndCountAll({
@@ -146,7 +146,7 @@ const fetchUserBookings = async (userId, page = 1, pageSize = 10) => {
   };
 };
 
-const fetchUserTransactions = async (userId, page = 1, limit = 10) => {
+const fetchTransactions = async (userId, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   const transactions = await Transaction.findAndCountAll({
     where: { user_id: userId },
@@ -172,11 +172,11 @@ const fetchUserTransactions = async (userId, page = 1, limit = 10) => {
     total: transactions.count,
     pages: Math.ceil(transactions.count / limit),
     currentPage: page,
-    data: transactions.rows,
+    transactions: transactions.rows,
   };
 };
 
-const removeUser = async (id) => {
+const remove = async (id) => {
   const rollBack = await sequelize.transaction();
   try {
     const user = await User.findByPk(id);
@@ -196,11 +196,11 @@ const removeUser = async (id) => {
 };
 
 module.exports = {
-  createUser,
-  fetchUsers,
-  fetchUserBookings,
-  fetchUserTransactions,
-  editUserDetails,
+  fetchTransactions,
+  fetchBookings,
+  remove,
+  update,
   fetchById,
-  removeUser,
+  fetchUsers,
+  create,
 };

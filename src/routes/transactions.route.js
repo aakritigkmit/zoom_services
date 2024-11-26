@@ -5,21 +5,21 @@ const { authenticate } = require("../middlewares/auth.middleware");
 const checkRole = require("../middlewares/roles.middleware");
 const commonHelpers = require("../helpers/common.helper");
 const {
-  transactionSerializerMiddleware,
+  transactionSerializer,
 } = require("../serializers/transactions.serializer");
 
 router.post(
   "/",
   authenticate,
-  transactionController.generate,
-  transactionSerializerMiddleware,
+  transactionController.create,
+  transactionSerializer,
   commonHelpers.responseHandler,
 );
 router.get(
   "/",
   authenticate,
   transactionController.fetchAll,
-  transactionSerializerMiddleware,
+  transactionSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -27,7 +27,7 @@ router.get(
   "/:id",
   authenticate,
   transactionController.fetchById,
-  transactionSerializerMiddleware,
+  transactionSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -36,7 +36,7 @@ router.delete(
   authenticate,
   checkRole(["Admin", "Customer"]),
   transactionController.remove,
-  transactionSerializerMiddleware,
+  transactionSerializer,
   commonHelpers.responseHandler,
 );
 

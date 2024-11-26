@@ -6,11 +6,11 @@ const {
   errorHandler,
 } = require("../helpers/common.helper.js");
 
-const register = async (req, res, next) => {
+const create = async (req, res, next) => {
   const payload = req.body;
 
   try {
-    const newUser = await userService.createUser(payload);
+    const newUser = await userService.create(payload);
     console.log("newUser", newUser);
 
     res.data = { newUser };
@@ -23,7 +23,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const fetchUser = async (req, res, next) => {
+const fetchUsers = async (req, res, next) => {
   try {
     const { page, pageSize } = req.query;
 
@@ -66,7 +66,7 @@ const fetchById = async (req, res, next) => {
   }
 };
 
-const editUserDetails = async (req, res, next) => {
+const update = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -77,7 +77,7 @@ const editUserDetails = async (req, res, next) => {
       return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
 
-    const updatedUser = await userService.editUserDetails(id, req.body);
+    const updatedUser = await userService.update(id, req.body);
 
     if (!updatedUser) {
       return throwCustomError("User not found", StatusCodes.NOT_FOUND);
@@ -94,7 +94,7 @@ const editUserDetails = async (req, res, next) => {
   }
 };
 
-const removeUser = async (req, res, next) => {
+const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -105,7 +105,7 @@ const removeUser = async (req, res, next) => {
       return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
 
-    const deleted = await userService.removeUser(id);
+    const deleted = await userService.remove(id);
 
     if (!deleted) {
       return throwCustomError("User not found", StatusCodes.NOT_FOUND);
@@ -120,12 +120,12 @@ const removeUser = async (req, res, next) => {
   }
 };
 
-const fetchUserBookings = async (req, res, next) => {
+const fetchBookings = async (req, res, next) => {
   const userId = req.user.id;
 
   try {
     const { page = 1, pageSize = 10 } = req.query;
-    const bookings = await userService.fetchUserBookings(
+    const bookings = await userService.fetchBookings(
       userId,
       parseInt(page),
       parseInt(pageSize),
@@ -147,15 +147,11 @@ const fetchUserBookings = async (req, res, next) => {
   }
 };
 
-const fetchUserTransactions = async (req, res, next) => {
+const fetchTransactions = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { page, limit } = req.query;
-    const transactions = await userService.fetchUserTransactions(
-      id,
-      page,
-      limit,
-    );
+    const transactions = await userService.fetchTransactions(id, page, limit);
     res.data = transactions;
     res.message = "User  transactions retrieved successfully";
     res.statusCode = StatusCodes.OK;
@@ -165,11 +161,11 @@ const fetchUserTransactions = async (req, res, next) => {
   }
 };
 module.exports = {
-  fetchUserTransactions,
-  fetchUserBookings,
-  removeUser,
-  editUserDetails,
+  fetchTransactions,
+  fetchBookings,
+  remove,
+  update,
   fetchById,
-  fetchUser,
-  register,
+  fetchUsers,
+  create,
 };

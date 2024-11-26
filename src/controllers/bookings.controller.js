@@ -2,10 +2,10 @@ const { StatusCodes } = require("http-status-codes");
 const bookingService = require("../services/bookings.service");
 const { throwCustomError, errorHandler } = require("../helpers/common.helper");
 
-const createBooking = async (req, res, next) => {
+const create = async (req, res, next) => {
   const userId = req.user.id;
   try {
-    const newBooking = await bookingService.createBooking(
+    const newBooking = await bookingService.create(
       req.body,
       req.user.email,
       userId,
@@ -20,10 +20,10 @@ const createBooking = async (req, res, next) => {
   }
 };
 
-const fetchByBookingId = async (req, res, next) => {
+const fetchById = async (req, res, next) => {
   const bookingId = req.params.id;
   try {
-    const booking = await bookingService.fetchByBookingId(bookingId);
+    const booking = await bookingService.fetchById(bookingId);
     if (!booking) {
       throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
     }
@@ -55,17 +55,13 @@ const cancelBooking = async (req, res, next) => {
   }
 };
 
-const updateBookingDetails = async (req, res, next) => {
+const update = async (req, res, next) => {
   const { id } = req.params;
   const updatedData = req.body;
   const userId = req.user.id;
 
   try {
-    const updatedBooking = await bookingService.updateBooking(
-      id,
-      updatedData,
-      userId,
-    );
+    const updatedBooking = await bookingService.update(id, updatedData, userId);
 
     res.data = updatedBooking;
     res.message = "Booking updated successfully";
@@ -129,7 +125,7 @@ const getBookings = async (req, res, next) => {
       );
     }
 
-    const bookings = await bookingService.getBookingDetails(month, year);
+    const bookings = await bookingService.getBookings(month, year);
 
     res.data = bookings;
     res.message = `Bookings for ${month}/${year}`;
@@ -159,10 +155,10 @@ const downloadMonthlyBookings = async (req, res, next) => {
 
 module.exports = {
   downloadMonthlyBookings,
-  createBooking,
-  fetchByBookingId,
+  create,
+  fetchById,
   cancelBooking,
-  updateBookingDetails,
+  update,
   submitFeedback,
   monthlySummary,
   getBookings,

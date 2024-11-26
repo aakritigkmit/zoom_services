@@ -6,7 +6,7 @@ const { StatusCodes } = require("http-status-codes");
 const { sendEmail } = require("../utils/email");
 const moment = require("moment");
 
-const createBooking = async (data, email, userId) => {
+const create = async (data, email, userId) => {
   const rollBack = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
@@ -47,11 +47,11 @@ const createBooking = async (data, email, userId) => {
   }
 };
 
-const fetchByBookingId = async (id) => {
+const fetchById = async (id) => {
   return await Booking.findByPk(id);
 };
 
-const updateBooking = async (bookingId, updatedData, userId) => {
+const update = async (bookingId, updatedData, userId) => {
   const t = await sequelize.transaction();
 
   try {
@@ -155,7 +155,7 @@ const monthlySummary = async (year = new Date().getFullYear()) => {
   return summary;
 };
 
-const getBookingDetails = async (month, year) => {
+const getBookings = async (month, year) => {
   const bookings = await Booking.findAll({
     where: sequelize.and(
       sequelize.where(
@@ -176,32 +176,32 @@ const getBookingDetails = async (month, year) => {
   return bookings;
 };
 
-const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
-  const offset = (page - 1) * pageSize;
+// const fetchAllBookingsForUser = async (userId, page = 1, pageSize = 10) => {
+//   const offset = (page - 1) * pageSize;
 
-  const { count, rows: bookings } = await Booking.findAndCountAll({
-    where: {
-      user_id: userId,
-    },
-    include: [
-      {
-        model: Car,
-        as: "car",
-        attributes: ["id", "model", "year", "fuel_type", "city", "status"],
-      },
-    ],
-    order: [["start_date", "DESC"]],
-    limit: pageSize,
-    offset,
-  });
+//   const { count, rows: bookings } = await Booking.findAndCountAll({
+//     where: {
+//       user_id: userId,
+//     },
+//     include: [
+//       {
+//         model: Car,
+//         as: "car",
+//         attributes: ["id", "model", "year", "fuel_type", "city", "status"],
+//       },
+//     ],
+//     order: [["start_date", "DESC"]],
+//     limit: pageSize,
+//     offset,
+//   });
 
-  return {
-    totalBookings: count,
-    currentPage: page,
-    totalPages: Math.ceil(count / pageSize),
-    bookings,
-  };
-};
+//   return {
+//     totalBookings: count,
+//     currentPage: page,
+//     totalPages: Math.ceil(count / pageSize),
+//     bookings,
+//   };
+// };
 
 const downloadMonthlyBookings = async ({ month, year }) => {
   const whereConditions = {};
@@ -291,14 +291,13 @@ const bookingScheduler = async () => {
 };
 
 module.exports = {
-  createBooking,
-  fetchByBookingId,
+  create,
+  fetchById,
   cancelBooking,
   submitFeedback,
   downloadMonthlyBookings,
   monthlySummary,
-  fetchAllBookingsForUser,
-  getBookingDetails,
-  updateBooking,
+  getBookings,
+  update,
   bookingScheduler,
 };

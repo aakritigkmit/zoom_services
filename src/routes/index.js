@@ -6,7 +6,6 @@ function camelCaseToDash(myStr) {
   return myStr.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
-// HELPER FUNCTION TO GET ALL ROUTES PATH
 const getAllRoutesPath = function () {
   const allRoutesPath = [];
 
@@ -23,7 +22,6 @@ const getAllRoutesPath = function () {
   return allRoutesPath;
 };
 
-// MAIN FUNCTION TO REGISTER ALL ROUTES
 const registerRoutes = function (expressInstance) {
   const allRoutesPath = getAllRoutesPath();
   // LOAD ALL NESTED ROUTES FILE

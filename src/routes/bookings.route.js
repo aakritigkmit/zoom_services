@@ -6,16 +6,14 @@ const { createBookingSchema } = require("../validators/bookings.validator");
 const { authenticate } = require("../middlewares/auth.middleware");
 const checkRole = require("../middlewares/roles.middleware");
 const commonHelpers = require("../helpers/common.helper");
-const {
-  bookingsSerializerMiddleware,
-} = require("../serializers/bookings.serializer");
+const { bookingSerializer } = require("../serializers/bookings.serializer");
 
 router.post(
   "/",
   authenticate,
   validateRequest(createBookingSchema),
-  bookingController.createBooking,
-  bookingsSerializerMiddleware,
+  bookingController.create,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -24,7 +22,7 @@ router.get(
   authenticate,
   checkRole(["Admin"]),
   bookingController.monthlySummary,
-  bookingsSerializerMiddleware,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -33,7 +31,7 @@ router.get(
   authenticate,
   checkRole(["Admin"]),
   bookingController.getBookings,
-  bookingsSerializerMiddleware,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -42,15 +40,15 @@ router.get(
   authenticate,
   checkRole(["Car Owner", "Admin"]),
   bookingController.downloadMonthlyBookings,
-  bookingsSerializerMiddleware,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
 router.get(
   "/:id",
   authenticate,
-  bookingController.fetchByBookingId,
-  bookingsSerializerMiddleware,
+  bookingController.fetchById,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -58,8 +56,8 @@ router.put(
   "/:id",
   authenticate,
   checkRole(["Admin", "Car Owner"]),
-  bookingController.updateBookingDetails,
-  bookingsSerializerMiddleware,
+  bookingController.update,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -67,7 +65,7 @@ router.patch(
   "/:id/cancel",
   authenticate,
   bookingController.cancelBooking,
-  bookingsSerializerMiddleware,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 
@@ -75,7 +73,7 @@ router.post(
   "/:id/feedback",
   authenticate,
   bookingController.submitFeedback,
-  bookingsSerializerMiddleware,
+  bookingSerializer,
   commonHelpers.responseHandler,
 );
 

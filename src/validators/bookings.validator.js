@@ -18,7 +18,7 @@ const updateBookingSchema = Joi.object({
   drop_off_time: dateSchema.optional(),
   status: Joi.string().valid("picked_up", "dropped_off", "canceled").optional(),
   estimated_distance: Joi.number().integer().min(0).optional(),
-}).min(1); // At least one field is required for an update
+}).min(1);
 
 const getBookingByIdSchema = Joi.object({
   id: uuidSchema.required(),

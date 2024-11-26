@@ -1,79 +1,54 @@
-const serializeSingleCar = (car) => ({
+const {
+  toCamelCase,
+  normalizeTimestamps,
+  removeCircularReferences,
+} = require("../helpers/serializer.helper");
+
+const carSerializerMiddleware = (car) => ({
   id: car.id,
   model: car.model,
   year: car.year,
-  fuelType: car.fuel_type,
+  fuelType: car.fuelType,
   city: car.city,
   latitude: car.latitude,
   longitude: car.longitude,
-  pricePerKm: car.price_per_km,
-  pricePerHr: car.price_per_hr,
+  pricePerKm: car.pricePerKm,
+  pricePerHr: car.pricePerHr,
   status: car.status,
   type: car.type,
-  chassisNumber: car.chassis_number,
-  userId: car.user_id,
+  chassisNumber: car.chassisNumber,
+  userId: car.userId,
   image: car.image,
-  createdAt: car.created_at,
-  updatedAt: car.updated_at,
-  deletedAt: car.deleted_at || null,
+  ...normalizeTimestamps(car),
 });
 
-// Function to serialize car bookings
-const serializeCarBookings = (bookings) => {
-  if (!bookings || bookings.length === 0) {
-    return [];
-  }
+const carsListSerializer = (carsData) => ({
+  data: carsData.data.map(carSerializerMiddleware),
+  pagination: carsData.pagination,
+});
 
-  return bookings.map((booking) => {
-    console.log("Serializing booking data:", booking);
-
-    return {
-      id: booking.id,
-      startDate: booking.start_date,
-      endDate: booking.end_date,
-      status: booking.status,
-      fare: booking.fare,
-      user: booking.user
-        ? {
-            id: booking.user.id,
-            name: booking.user.name,
-            email: booking.user.email,
-          }
-        : null,
-    };
-  });
-};
-
-const serializeCar = (req, res, next) => {
-  const { data } = res;
-
-  console.log("Before Serialization CAR res.data:", Object.keys(data)); // [ 'car', 'message' ]
-
-  if (data.bookings) {
-    console.log("Serializing bookings data:", data.bookings);
-
-    const serializedBookings = serializeCarBookings(data.bookings);
-
-    res.data = {
-      bookings: serializedBookings,
-      message: data.message || "Bookings retrieved successfully",
-    };
-
+const carSerializer = (req, res, next) => {
+  if (!res.data) {
     return next();
   }
 
-  if (data.car) {
-    const serializedCar = serializeSingleCar(data.car);
+  const serializeData = (data) => {
+    if (data.car) {
+      return { car: carSerializerMiddleware(data.car) };
+    } else if (data.cars) {
+      return { cars: carsListSerializer(data.cars) };
+    } else {
+      return data; // Fallback for unexpected data structure
+    }
+  };
 
-    res.data = {
-      car: serializedCar,
-      message: data.message || "Car bookings retrieved successfully",
-    };
-  }
+  res.data = removeCircularReferences(res.data);
+  res.data = serializeData(res.data);
+  res.data = toCamelCase(res.data);
 
-  return next();
+  next();
 };
 
 module.exports = {
-  serializeCar,
+  carSerializer,
 };

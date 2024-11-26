@@ -16,7 +16,10 @@ const registerSchema = Joi.object({
     .pattern(/^[0-9]{10}$/)
     .required(),
   password: Joi.string().min(6).required(),
-  roleName: Joi.array().items(Joi.string()).required(),
+  // roleName: Joi.array().items(Joi.string()).required(),
+  roleName: Joi.array()
+    .items(Joi.string().valid("Customer", "Car Owner"))
+    .not(Joi.string().valid("Admin")),
   city: Joi.string().required(),
 });
 
