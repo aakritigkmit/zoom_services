@@ -11,7 +11,7 @@ const sendOtp = async (email) => {
   const user = await User.findOne({ where: { email } });
 
   if (!user) {
-    throw { statusCode: 404, message: "Email not registered" };
+    throwCustomError(" Email not registered ", StatusCodes.NOT_FOUND);
   }
 
   const otp = generateOtp();
@@ -24,10 +24,13 @@ const sendOtp = async (email) => {
   return true;
 };
 
-const verifyOtp = async (email, otp) => {
+const verifyOtp = async (payload) => {
+  const { email, otp } = payload;
+
   const storedOtp = await client.get(`otp:${email}`);
+
   if (!storedOtp || storedOtp !== otp) {
-    return throwCustomError("otp is not valid", StatusCodes.UNAUTHORIZED);
+    throwCustomError("otp is not valid", StatusCodes.UNAUTHORIZED);
   }
 
   await client.del(`otp:${email}`);
@@ -66,7 +69,7 @@ const registerUser = async (payload) => {
 
   const role = await Role.findOne({ where: { name: roleName } });
   if (!role) {
-    throw { statusCode: 400, message: "Role does not exist" };
+    return throwCustomError("Role does not exist", StatusCodes.BAD_REQUEST);
   }
 
   await newUser.addRole(role);
@@ -76,28 +79,30 @@ const registerUser = async (payload) => {
   return newUser;
 };
 
-const login = async (email, password) => {
+const login = async (payload) => {
   try {
+    const { email, password } = payload;
     const user = await User.findOne({
       where: { email },
       include: { model: Role, as: "roles", attributes: ["name"] },
     });
 
     if (!user) {
-      throw { statusCode: 404, message: "User not registered" };
+      throw throwCustomError("User not registered", StatusCodes.NOT_FOUND);
     }
 
     if (!user.verified) {
-      throw { statusCode: 403, message: "User not verified" };
+      throw throwCustomError("User not verified", StatusCodes.FORBIDDEN);
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      throw { statusCode: 400, message: "Invalid credentials" };
+      throw throwCustomError("Invalid credentials", StatusCodes.BAD_REQUEST);
     }
 
     const token = generateToken({ id: user.id, role: user.roles[0]?.name });
+
     return token;
   } catch (error) {
     console.error("Login error:", error.message);
