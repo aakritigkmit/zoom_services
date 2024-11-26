@@ -22,8 +22,8 @@ const authenticate = async (req, res, next) => {
       },
     });
 
-    if (!user) {
-      return errorHandler(res, "User not found", 404);
+    if (!user || !user.verified) {
+      return errorHandler(res, "User not verified", 403);
     }
 
     req.user = user;
