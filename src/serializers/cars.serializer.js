@@ -17,7 +17,7 @@ const carSerializerMiddleware = (car) => ({
   status: car.status,
   type: car.type,
   chassisNumber: car.chassisNumber,
-  userId: car.userId,
+  ownerId: car.ownerId,
   image: car.image,
   ...normalizeTimestamps(car),
 });
@@ -34,11 +34,11 @@ const carSerializer = (req, res, next) => {
 
   const serializeData = (data) => {
     if (data.car) {
-      return { car: carSerializerMiddleware(data.car) };
+      return { cars: carSerializerMiddleware(data.car) };
     } else if (data.cars) {
       return { cars: carsListSerializer(data.cars) };
     } else {
-      return data; // Fallback for unexpected data structure
+      return data;
     }
   };
 
