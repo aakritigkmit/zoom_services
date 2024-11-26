@@ -1,0 +1,722 @@
+openapi: 3.0.0
+info:
+  title: ZoomCar
+  version: 1.0.0
+servers:
+  - url: http://{{base_url}}auth
+  - url: http://localhost:3000
+  - url: http://{{base_url}}users
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+tags:
+  - name: Authentication
+  - name: User
+  - name: Car
+  - name: Bookings
+  - name: Transactions
+paths:
+  /login:
+    post:
+      tags:
+        - Authentication
+      summary: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: aakriti@gkmit.co
+                password: "12345678"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /send-otp:
+    post:
+      tags:
+        - Authentication
+      summary: send-otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: khannayogita00@gmail.com
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /verify-otp:
+    post:
+      tags:
+        - Authentication
+      summary: verify-otp
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                email: khannayogita00@gmail.com
+                otp: "907393"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: register-user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: shinoo
+                email: khannayogita00@gmail.com
+                phoneNumber: "2189896001"
+                password: "12345678"
+                roleName:
+                  - Customer
+                city: udaipur
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /:
+    post:
+      tags:
+        - User
+      summary: create-user-by-admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Adakfmi
+                email: kisdhore31867@gmail.com
+                phoneNumber: "9631339588"
+                password: "12348678"
+                roles:
+                  - Customer
+                city: Delhi
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE1MTEzMSwiZXhwIjoxNzMyMjM3NTMxfQ.ajo4nDRCcqB82XiKUjCwvc1S7nSia2zJUORODFHXaxg
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/users/:
+    get:
+      tags:
+        - User
+      summary: fetchAlluser
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTk5Mjg0NCwiZXhwIjoxNzMyMDc5MjQ0fQ.FNvyRnuPYv0t-DktytPhT8NjuKexQKLqsVteH7kwxwM
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/users/{id}:
+    get:
+      tags:
+        - User
+      summary: fetchbyId
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTQ5MDgzNSwiZXhwIjoxNzMxNTc3MjM1fQ.zvjUYy_tH5d6jxTT2_Sht_gJ9vFnnGq9axLxTzJOHPQ
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 1a130560-9a42-4046-8f95-ee299e2b820b
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/users/9ef4c3a9-309a-4d1d-be4a-570fa96ad780:
+    patch:
+      tags:
+        - User
+      summary: update-user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                city: Delhi
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE1MTEzMSwiZXhwIjoxNzMyMjM3NTMxfQ.ajo4nDRCcqB82XiKUjCwvc1S7nSia2zJUORODFHXaxg
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/users/3d6cf2d1-12e4-4571-a898-090c278eac74:
+    delete:
+      tags:
+        - User
+      summary: remove-user
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTgyNzI0NSwiZXhwIjoxNzMxOTEzNjQ1fQ.Ae0D3IdNg5hbzDmsJgK1MGwAzCoKaNYtA1X2MmVS4ww
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/users/{id}/bookings:
+    get:
+      tags:
+        - User
+      summary: fetchBookingsbyId
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlNDAyNWVhLWQ0ZGEtNDIxOS04OTc2LTcyYjA2YmRjNjUyZiIsInJvbGUiOiJDYXIgT3duZXIiLCJpYXQiOjE3MzE2NTg1MzcsImV4cCI6MTczMTc0NDkzN30.qMMFZ_SdnluydQclpqqudKGGeG9Kn0utMAsIGhRJI_4
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: ee4025ea-d4da-4219-8976-72b06bdc652f
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/cars:
+    post:
+      tags:
+        - Car
+      summary: car-list
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+                  example: Nexaz
+                year:
+                  type: integer
+                  example: "2021"
+                fuel_type:
+                  type: string
+                  example: petrol
+                city:
+                  type: string
+                  example: Ashirwaad nagar, Udaipur
+                latitude:
+                  type: number
+                  example: "24.6011"
+                longitude:
+                  type: number
+                  example: "73.7171"
+                price_per_km:
+                  type: integer
+                  example: "25"
+                price_per_hr:
+                  type: integer
+                  example: "190"
+                status:
+                  type: string
+                  example: available
+                user_id:
+                  type: string
+                  example: c0c2d924-ac6b-413d-b6a7-e6a02a06ceb8
+                type:
+                  type: string
+                  example: mini SUV
+                chassis_number:
+                  type: integer
+                  example: "1287677338530"
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjAyNzY5OSwiZXhwIjoxNzMyMTE0MDk5fQ.liJ4_GpetHh7vWsu4T2E6uD400dh8HtPYcK60mLfhZ0
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/cars/{id}:
+    get:
+      tags:
+        - Car
+      summary: fetchByID
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE1NDU5MiwiZXhwIjoxNzMyMjQwOTkyfQ.eOBb0hvIshBhtXsjY5GYKwkbLhiGhr4zgkDOip2MxvQ
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 07fcb338-2873-4c61-8749-81e23d0efc6a
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Car
+      summary: updateCar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                year: 2022
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTg0MDU2NywiZXhwIjoxNzMxOTI2OTY3fQ.Yw8Na4K18I8CqY_rea01GVSM0MiitWQ4YkzoguOPdYI
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: f4395636-19f9-42d9-9e1e-210ab1834946
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Car
+      summary: Delete-car
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTYwMzM5NiwiZXhwIjoxNzMxNjg5Nzk2fQ.nr3xKVWQ4rGS7QgGN9MjMPUx35KxKh7uzxL750lhypA
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: b9af40ba-3da9-458b-96ba-2c30f231ad15
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/cars/{id}/status:
+    patch:
+      tags:
+        - Car
+      summary: New Request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example: ""
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlNDAyNWVhLWQ0ZGEtNDIxOS04OTc2LTcyYjA2YmRjNjUyZiIsInJvbGUiOiJDYXIgT3duZXIiLCJpYXQiOjE3MzE4NDc3NTQsImV4cCI6MTczMTkzNDE1NH0.Y8XldhBv3jTMxZjij0AdBKIFrnUxgMreR__Uv4M4YtI
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 4aade6b1-eb0c-417d-b0c0-5b56ebbadc0b
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/cars/:
+    get:
+      tags:
+        - Car
+      summary: near-by-search
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlNDAyNWVhLWQ0ZGEtNDIxOS04OTc2LTcyYjA2YmRjNjUyZiIsInJvbGUiOiJDYXIgT3duZXIiLCJpYXQiOjE3MzE2NTIzMDksImV4cCI6MTczMTczODcwOX0.8pGVglDqgAkB5Zsx4bx9byxiuz39Z7UxiJkCbEe7dEs
+        - name: longitude
+          in: query
+          schema:
+            type: number
+          example: "73.7167"
+        - name: latitude
+          in: query
+          schema:
+            type: number
+          example: "24.6049"
+        - name: radius
+          in: query
+          schema:
+            type: integer
+          example: "5"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings:
+    post:
+      tags:
+        - Bookings
+      summary: createBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                car_id: 4aade6b1-eb0c-417d-b0c0-5b56ebbadc0b
+                start_date: "2024-11-20"
+                end_date: "2024-11-22"
+                estimated_distance: 4
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjAwODUzNSwiZXhwIjoxNzMyMDk0OTM1fQ.0Xi6iPkhrG1FNC7Sw2yJT8UqCnC5sn3ApbAVXZvNk8U
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - Bookings
+      summary: getMonthlyBookings
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTczMjM2NSwiZXhwIjoxNzMxODE4NzY1fQ.MZ8uOBnMzhUnFvSKypcX65OZEK4xi7xNAuVSBlIudFs
+        - name: year
+          in: query
+          schema:
+            type: integer
+          example: "2024"
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings/{id}:
+    get:
+      tags:
+        - Bookings
+      summary: fetchBookingById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: d1c5dc4a-2794-4f66-b69f-1c783df06506
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Transactions
+      summary: UpdateBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                status: available
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: d968b727-625d-47ef-b99b-b35109416e7d
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings/{id}/feedback:
+    post:
+      tags:
+        - Bookings
+      summary: feedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                feedback: great ride
+      parameters:
+        - name: Proxy-Authorization
+          in: header
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjAwODUzNSwiZXhwIjoxNzMyMDk0OTM1fQ.0Xi6iPkhrG1FNC7Sw2yJT8UqCnC5sn3ApbAVXZvNk8U
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 63d879a2-baa4-4bc4-8ae8-2070e35c4b7a
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings/{id}/cancel:
+    patch:
+      tags:
+        - Bookings
+      summary: cancelBookings
+      requestBody:
+        content: {}
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlNDAyNWVhLWQ0ZGEtNDIxOS04OTc2LTcyYjA2YmRjNjUyZiIsInJvbGUiOiJDYXIgT3duZXIiLCJpYXQiOjE3MzE2ODA3MjAsImV4cCI6MTczMTc2NzEyMH0.8BFXYtJqx0vdgx2rVYidhkfdxUoFzwMChX_Mz5EUhkg
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 83d6f8c8-d794-43a5-bbf6-531ce7f045a2
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings/:
+    get:
+      tags:
+        - Bookings
+      summary: AllBookings
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTczMjM2NSwiZXhwIjoxNzMxODE4NzY1fQ.MZ8uOBnMzhUnFvSKypcX65OZEK4xi7xNAuVSBlIudFs
+        - name: month
+          in: query
+          schema:
+            type: integer
+          example: "11"
+        - name: year
+          in: query
+          schema:
+            type: integer
+          example: "2024"
+        - name: status
+          in: query
+          schema:
+            type: string
+          example: |
+            Pending
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/bookings/download:
+    get:
+      tags:
+        - Bookings
+      summary: download
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE2OTQzOSwiZXhwIjoxNzMyMjU1ODM5fQ.vVbK1fUFRxxRFUU2NHBDMfSmnOLk4pIG8DliUoliOCk
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/transactions:
+    post:
+      tags:
+        - Transactions
+      summary: New Request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                booking_id: d4ea8128-4201-4564-af8a-5d0548750a73
+                user_id: 9ef4c3a9-309a-4d1d-be4a-570fa96ad780
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE2OTQzOSwiZXhwIjoxNzMyMjU1ODM5fQ.vVbK1fUFRxxRFUU2NHBDMfSmnOLk4pIG8DliUoliOCk
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    get:
+      tags:
+        - Transactions
+      summary: fetchAll
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTc4MTk1MSwiZXhwIjoxNzMxODY4MzUxfQ.IDeAP1XeaRxEU8ujFwL2I29_v2CBAczwZDGJK5sk3FM
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+  /api/transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: fetchTransactionByID
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            B
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE1NDU5MiwiZXhwIjoxNzMyMjQwOTkyfQ.eOBb0hvIshBhtXsjY5GYKwkbLhiGhr4zgkDOip2MxvQ
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 247d120b-eb53-46fa-b562-d602e871026c
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Transactions
+      summary: New Request
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+          example: >-
+            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTc4MTk1MSwiZXhwIjoxNzMxODY4MzUxfQ.IDeAP1XeaRxEU8ujFwL2I29_v2CBAczwZDGJK5sk3FM
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+          example: 29c478eb-b55b-44e9-8ffc-75aaee9dff16
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json: {}
