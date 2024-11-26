@@ -62,17 +62,9 @@ router.put(
 );
 
 router.patch(
-  "/:id/cancel",
+  "/:id",
   authenticate,
-  bookingController.cancelBooking,
-  bookingSerializer,
-  commonHelpers.responseHandler,
-);
-
-router.patch(
-  "/:id/feedback",
-  authenticate,
-  bookingController.submitFeedback,
+  bookingController.updateByAction,
   bookingSerializer,
   commonHelpers.responseHandler,
 );

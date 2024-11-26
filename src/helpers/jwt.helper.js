@@ -1,15 +1,16 @@
 const { client } = require("../config/redis");
 const jwt = require("jsonwebtoken");
+const { throwCustomError } = require("../helpers/common.helper");
 
-exports.generateToken = (payload) => {
+const generateToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
 
-exports.verifyToken = async (token) => {
+const verifyToken = async (token) => {
   const isBlacklisted = await client.get(token);
-  console.log("Is token blacklisted:", isBlacklisted);
+
   if (isBlacklisted) {
-    throw new Error("Token is blacklisted");
+    throwCustomError("Token is blacklisted", StatusCodes.UNAUTHORIZED);
   }
 
   try {
@@ -33,3 +34,5 @@ exports.blacklistToken = async (token) => {
     console.warn("Token already expired. Not blacklisting.");
   }
 };
+
+module.exports = { generateToken, verifyToken };

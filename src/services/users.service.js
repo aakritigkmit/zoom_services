@@ -8,18 +8,17 @@ const {
 } = require("../models");
 
 const { throwCustomError } = require("../helpers/common.helper");
-
 const bcrypt = require("bcryptjs");
 const { StatusCodes } = require("http-status-codes");
 
 const create = async (payload) => {
   const { name, email, phoneNumber, password, roles, city } = payload;
-  const rollBack = await sequelize.transaction();
+  const t = await sequelize.transaction();
 
   try {
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      throw throwCustomError("User already exists", StatusCodes.BAD_REQUEST);
+      throwCustomError("User already exists", StatusCodes.BAD_REQUEST);
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -34,17 +33,18 @@ const create = async (payload) => {
     });
 
     const role = await Role.findOne({ where: { name: roles } });
+
     if (!role) {
-      throw { statusCode: 400, message: "Role does not exist" };
+      throwCustomError("Role does not exist", StatusCodes.BAD_REQUEST);
     }
 
     await newUser.addRole(role);
-    await rollBack.commit();
+    await t.commit();
 
     return newUser;
   } catch (error) {
     console.log(error.message);
-    await rollBack.rollback();
+    await t.rollback();
     throw error;
   }
 };
@@ -82,7 +82,7 @@ const fetchCurrentUser = async (userId) => {
   });
 
   if (!user) {
-    throw new Error("User not found");
+    throwCustomError("User not found", StatusCodes.NOT_FOUND);
   }
 
   return user;
@@ -93,7 +93,7 @@ const fetchById = async (id, loggedInUser) => {
     loggedInUser.id !== id &&
     !loggedInUser.roles.some((role) => role.name === "Admin")
   ) {
-    return { statusCode: StatusCodes.FORBIDDEN, message: "Forbidden" };
+    throwCustomError("Access Denied ", StatusCodes.FORBIDDEN);
   }
 
   const user = await User.findOne({
@@ -109,20 +109,14 @@ const fetchById = async (id, loggedInUser) => {
   });
 
   if (!user) {
-    return { statusCode: StatusCodes.NOT_FOUND, message: "User not found" };
+    throwCustomError("User not found", StatusCodes.NOT_FOUND);
   }
-
-  console.log("FetchById Services", user);
   return { user };
 };
 
 const update = async (userId, updateData) => {
   const rollBack = await sequelize.transaction();
   try {
-    if (updateData.password) {
-      updateData.password = await bcrypt.hash(updateData.password, 10);
-    }
-
     const [rowsUpdated, [updatedUser]] = await User.update(updateData, {
       where: { id: userId },
       returning: true,
@@ -130,7 +124,10 @@ const update = async (userId, updateData) => {
     });
 
     if (rowsUpdated === 0) {
-      throw new Error("User not found or no changes made");
+      throwCustomError(
+        "User not found or no changes made",
+        StatusCodes.NOT_FOUND,
+      );
     }
 
     const safeUpdatedUser = updatedUser.get({ plain: true });
@@ -205,7 +202,7 @@ const fetchTransactions = async (userId, page = 1, limit = 10) => {
 };
 
 const remove = async (id) => {
-  const rollBack = await sequelize.transaction();
+  const t = await sequelize.transaction();
   try {
     const user = await User.findByPk(id);
 
@@ -213,19 +210,19 @@ const remove = async (id) => {
       req.user.id !== id &&
       !req.user.roles.some((role) => role.name === "Admin")
     ) {
-      return throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+      throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
     }
 
     if (!user) {
-      return { statusCode: StatusCodes.NOT_FOUND, message: "User not found" };
+      throwCustomError("User not found", StatusCodes.NOT_FOUND);
     }
 
-    await rollBack.commit();
+    await t.commit();
     await user.destroy();
 
     return { message: "User deleted successfully" };
   } catch (error) {
-    await rollBack.rollback();
+    await t.rollback();
     throw error;
   }
 };

@@ -12,8 +12,8 @@ const create = async (req, res, next) => {
 
     res.data = { car };
     res.message = "Car created successfully";
-
     res.statusCode = StatusCodes.CREATED;
+
     next();
   } catch (error) {
     console.log(error);
@@ -32,10 +32,8 @@ const fetchBookings = async (req, res, next) => {
     res.message = bookings.length
       ? "Bookings retrieved successfully"
       : "No bookings found for this car";
-
-    res.statusCode = StatusCodes.CREATED;
-
     res.statusCode = bookings.length ? StatusCodes.OK : StatusCodes.NOT_FOUND;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -49,7 +47,9 @@ const findNearestCars = async (req, res, next) => {
     res.data = {
       message: "Latitude and longitude are required",
     };
+
     res.statusCode = StatusCodes.BAD_REQUEST;
+
     return next();
   }
 
@@ -106,6 +106,7 @@ const update = async (req, res, next) => {
     res.data = { car: updatedCar };
     res.message = "Car updated successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -123,6 +124,7 @@ const updateStatus = async (req, res, next) => {
     res.data = { car: updatedCar };
     res.message = "Car status updated successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -132,7 +134,6 @@ const updateStatus = async (req, res, next) => {
 const remove = async (req, res, next) => {
   try {
     const carId = req.params.id;
-
     const deletedCar = await carService.remove(carId);
 
     if (!deletedCar) {
@@ -141,6 +142,7 @@ const remove = async (req, res, next) => {
 
     res.message = "Car deleted successfully";
     res.statusCode = StatusCodes.NO_CONTENT;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);

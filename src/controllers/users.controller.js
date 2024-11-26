@@ -13,6 +13,7 @@ const create = async (req, res, next) => {
 
     res.message = "User registered successfully";
     res.statusCode = StatusCodes.CREATED;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -51,8 +52,8 @@ const fetchById = async (req, res, next) => {
 
     res.data = { user: result.user };
     res.message = "User fetched successfully";
-
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -64,9 +65,11 @@ const fetchCurrentUser = async (req, res, next) => {
   try {
     const id = req.user.id;
     const user = await userService.fetchCurrentUser(id);
+
     res.data = user;
     res.message = "User details retrieved successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     console.error("Error fetching user details:", error);
@@ -133,8 +136,8 @@ const remove = async (req, res, next) => {
     }
 
     res.message = "User deleted successfully";
-
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -162,6 +165,7 @@ const fetchBookings = async (req, res, next) => {
     res.data = { bookings };
     res.message = "Bookings fetched successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -180,9 +184,11 @@ const fetchTransactions = async (req, res, next) => {
         StatusCodes.NOT_FOUND,
       );
     }
+
     res.data = transactions;
     res.message = "User  transactions retrieved successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);

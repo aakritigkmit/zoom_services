@@ -23,8 +23,8 @@ const sendOtp = async (req, res, next) => {
 
 const verifyOtp = async (req, res, next) => {
   try {
-    const { email, otp } = req.body;
-    await authService.verifyOtp(email, otp);
+    const payload = req.body;
+    await authService.verifyOtp(payload);
 
     res.message = "OTP verified";
     res.statusCode = StatusCodes.OK;
@@ -56,14 +56,15 @@ const register = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  const { email, password } = req.body;
+  const payload = req.body;
 
   try {
-    const token = await authService.login(email, password);
+    const token = await authService.login(payload);
 
     res.message = "Login successful";
     res.data = { token };
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(

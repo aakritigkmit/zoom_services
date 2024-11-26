@@ -17,16 +17,23 @@ const create = async (data) => {
     });
 
     if (!booking) {
-      throw new Error("Booking not found");
+      throwCustomError("Booking Not Found", StatusCodes.NOT_FOUND);
     }
 
     if (!booking.user) {
-      throw new Error("User not found for this booking");
+      throwCustomError(
+        "User not found for this booking",
+        StatusCodes.NOT_FOUND,
+      );
     }
 
     const car = booking.car;
+
     if (car.status === "unavailable") {
-      throw new Error("Car is not available for rent");
+      throwCustomError(
+        "Car is not available for rent",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     const transaction_amount = booking.fare;
@@ -83,7 +90,9 @@ const create = async (data) => {
   }
 };
 
-const fetchAll = async (filters, page = 1, limit = 10) => {
+const fetchAll = async (data) => {
+  const { page = 1, limit = 10, ...filters } = data;
+
   const whereConditions = {};
 
   for (const [key, value] of Object.entries(filters)) {
@@ -158,7 +167,7 @@ const remove = async (id) => {
   try {
     const transactionRecord = await Transaction.findByPk(id, { transaction });
     if (!transactionRecord) {
-      throwCustomError("Transaction not found", 404);
+      throwCustomError("Transaction not found", StatusCodes.NOT_FOUND);
     }
 
     await transactionRecord.destroy({ transaction });
