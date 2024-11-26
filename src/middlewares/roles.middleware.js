@@ -1,4 +1,4 @@
-const { errorHandler } = require("../helpers/common.helper");
+const { errorHandler, responseHandler } = require("../helpers/common.helper");
 
 const checkRole = (requiredRoles) => {
   return async (req, res, next) => {
@@ -12,13 +12,15 @@ const checkRole = (requiredRoles) => {
       );
 
       if (!hasAccess) {
-        return errorHandler(res, "Access denied", 403);
+        res.message = "Access denied";
+        res.statusCode = 403;
+        return responseHandler(req, res);
       }
 
       next();
     } catch (error) {
       console.error("Error in role middleware:", error);
-      return errorHandler(res, "Server error", 400);
+      return errorHandler(res, error, "Server error", 400);
     }
   };
 };
