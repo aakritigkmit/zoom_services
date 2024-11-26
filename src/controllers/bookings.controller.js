@@ -1,6 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const bookingService = require("../services/bookings.service");
-const { throwCustomError, errorHandler } = require("../helpers/common.helper");
+const { errorHandler } = require("../helpers/common.helper");
 
 const create = async (req, res, next) => {
   const userId = req.user.id;
@@ -14,6 +14,7 @@ const create = async (req, res, next) => {
     res.data = { newBooking };
     res.message = "Booking created successfully";
     res.statusCode = StatusCodes.CREATED;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -27,23 +28,6 @@ const fetchById = async (req, res, next) => {
 
     res.data = { booking };
     res.message = "Booking fetched successfully";
-    res.statusCode = StatusCodes.OK;
-
-    next();
-  } catch (error) {
-    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
-  }
-};
-
-const cancelBooking = async (req, res, next) => {
-  const { id } = req.params;
-  const userId = req.user.id;
-
-  try {
-    const booking = await bookingService.cancelBooking(id, userId);
-
-    res.data = { booking };
-    res.message = "Booking cancelled successfully";
     res.statusCode = StatusCodes.OK;
 
     next();
@@ -70,20 +54,31 @@ const update = async (req, res, next) => {
   }
 };
 
-const submitFeedback = async (req, res, next) => {
+const updateByAction = async (req, res, next) => {
   try {
     const bookingId = req.params.id;
-    const { feedback } = req.body;
-
+    const { feedback, action } = req.body;
     const userId = req.user.id;
-    const result = await bookingService.submitFeedback({
-      bookingId,
-      userId,
-      feedback,
-    });
-    res.data = result;
-    res.message = "Feedback submitted successfully";
-    res.statusCode = StatusCodes.OK;
+
+    if (action === "feedback") {
+      const result = await bookingService.submitFeedback({
+        bookingId,
+        userId,
+        feedback,
+      });
+
+      res.data = result;
+      res.message = "Feedback submitted successfully";
+      res.statusCode = StatusCodes.OK;
+    } else if (action === "cancelBooking") {
+      const booking = await bookingService.cancelBooking(req.params, req.user);
+
+      res.data = { booking };
+      res.message = "Booking cancelled successfully";
+      res.statusCode = StatusCodes.OK;
+    } else {
+      throwCustomError("Invalid action", StatusCodes.BAD_REQUEST);
+    }
 
     next();
   } catch (error) {
@@ -101,6 +96,7 @@ const monthlySummary = async (req, res, next) => {
     res.data = booking;
     res.message = "Monthly summary retrieved successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
@@ -140,17 +136,9 @@ const fetchBookings = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  fetchBookings,
-};
-
 const downloadMonthlyBookings = async (req, res, next) => {
   try {
-    const { month, year } = req.query;
-    const csvData = await bookingService.downloadMonthlyBookings({
-      month,
-      year,
-    });
+    const csvData = await bookingService.downloadMonthlyBookings(req.query);
 
     res.header("Content-Type", "text/csv");
     res.attachment(`bookings_${month || "all"}_${year || "all"}.csv`);
@@ -164,9 +152,10 @@ module.exports = {
   downloadMonthlyBookings,
   create,
   fetchById,
-  cancelBooking,
   update,
-  submitFeedback,
+
   monthlySummary,
   getBookings,
+  updateByAction,
+  fetchBookings,
 };

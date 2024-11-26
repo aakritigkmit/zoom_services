@@ -10,8 +10,9 @@ const create = async (data, email, userId) => {
   const rollBack = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
+
     if (!car) {
-      throw new Error("Car not found");
+      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
     }
 
     const existingBooking = await Booking.findOne({
@@ -22,7 +23,10 @@ const create = async (data, email, userId) => {
     });
 
     if (existingBooking) {
-      throw new Error("You already have an active booking for this car.");
+      throwCustomError(
+        "You already have an active booking for this car.",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     const totalFare = calculateBookingFare(
@@ -51,7 +55,7 @@ const fetchById = async (id) => {
   const booking = await Booking.findByPk(id);
 
   if (!booking) {
-    throw new Error("Booking not found");
+    throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
   }
   return await Booking.findByPk(id);
 };
@@ -63,7 +67,7 @@ const update = async (bookingId, updatedData, userId) => {
     const booking = await Booking.findByPk(bookingId, { transaction: t });
 
     if (!booking) {
-      throw new Error("Booking not found");
+      throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
     }
 
     if (booking.user_id !== userId) {
@@ -73,7 +77,7 @@ const update = async (bookingId, updatedData, userId) => {
     if (updatedData.car_id) {
       const car = await Car.findByPk(updatedData.car_id, { transaction: t });
       if (!car) {
-        throw new Error("Car not found");
+        throwCustomError("Car not found", StatusCodes.NOT_FOUND);
       }
     }
 
@@ -88,21 +92,26 @@ const update = async (bookingId, updatedData, userId) => {
   }
 };
 
-const cancelBooking = async (bookingId, userId) => {
+const cancelBooking = async (params, user) => {
+  const { id: bookingId } = params;
+  const userId = user.id;
   const booking = await Booking.findByPk(bookingId, {
     include: [{ model: User, as: "user", attributes: ["name", "email"] }],
   });
 
   if (!booking) {
-    throw new Error(
-      "Booking not found or you're not authorized to cancel this booking.",
-    );
+    throwCustomError("Booking not found", StatusCodes.NOT_FOUND);
   }
+
   if (booking.user_id !== userId) {
     throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
   }
+
   if (booking.status === "Cancelled") {
-    throw new Error("This booking has already been cancelled.");
+    throwCustomError(
+      "This booking has already been cancelled.",
+      StatusCodes.BAD_REQUEST,
+    );
   }
 
   booking.status = "Cancelled";
@@ -117,11 +126,17 @@ const submitFeedback = async ({ bookingId, userId, feedback }) => {
   });
 
   if (!booking) {
-    throwCustomError("Booking not found or not accessible", 404);
+    throwCustomError(
+      "Booking not found or not accessible",
+      StatusCodes.FORBIDDEN,
+    );
   }
 
   if (booking.feedback) {
-    throwCustomError("Feedback already submitted for this booking", 400);
+    throwCustomError(
+      "Feedback already submitted for this booking",
+      StatusCodes.BAD_REQUEST,
+    );
   }
 
   booking.feedback = feedback;
@@ -166,7 +181,7 @@ const getBookings = async (month, year) => {
   if (month && (isNaN(month) || month < 1 || month > 12)) {
     throwCustomError(
       "Invalid month provided. It should be between 1 and 12.",
-      400,
+      StatusCodes.BAD_REQUEST,
     );
   }
 
@@ -199,7 +214,8 @@ const getBookings = async (month, year) => {
   return bookings;
 };
 
-const downloadMonthlyBookings = async ({ month, year }) => {
+const downloadMonthlyBookings = async (data) => {
+  const { month, year } = data;
   const whereConditions = {};
 
   if (month) {
@@ -225,7 +241,10 @@ const downloadMonthlyBookings = async ({ month, year }) => {
   });
 
   if (!bookings || bookings.length === 0) {
-    throwCustomError("No bookings found for the specified criteria", 404);
+    throwCustomError(
+      "No bookings found for the specified criteria",
+      StatusCodes.NOT_FOUND,
+    );
   }
 
   const json2csvParser = new Parser();
