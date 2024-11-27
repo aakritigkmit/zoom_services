@@ -140,7 +140,7 @@ const fetchBookings = async (req, res, next) => {
       message: "Bookings fetched successfully.",
       data: bookings,
     };
-    res.statusCode = 200;
+    res.statusCode = StatusCodes.OK;
     next();
   } catch (error) {
     next(error);

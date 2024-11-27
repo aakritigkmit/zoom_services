@@ -16,7 +16,6 @@ const create = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error);
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };

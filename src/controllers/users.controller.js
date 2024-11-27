@@ -194,6 +194,7 @@ const fetchTransactions = async (req, res, next) => {
     errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
   }
 };
+
 module.exports = {
   fetchTransactions,
   fetchBookings,
