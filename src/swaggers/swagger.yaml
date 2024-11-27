@@ -110,8 +110,9 @@ paths:
         '200':
           description: Successful response
           content:
-            application/json: {}
+           application/json: {}
 
+  
   paths:
   /users/:
     post:
@@ -179,7 +180,6 @@ paths:
           description: Unauthorized access (Admin role required)
           content:
             application/json: {}
-  
   /users/{id}:
     get:
       tags:
@@ -344,8 +344,9 @@ paths:
                     example: "Delhi"
         '401':
           description: Unauthorized access (User not logged in)
-           content:
-            application/json: {}
+          content:
+           application/json: {}
+  paths:          
   /users/me:
     put:
       tags:
@@ -445,7 +446,7 @@ paths:
         '200':
           description: Successful response
           content:
-            application/json: {}
+          application/json: {}
   paths:          
   /transcations/{id}:
     get:
@@ -471,8 +472,25 @@ paths:
           description: Successful response
           content:
             application/json: {}
+  paths:
+  /bookings/{id}:
+    delete:
+      tags:
+        - Transactions
+      summary: RemoveTransactions
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
   paths:          
-  /transactions/{id}:          
+  /cars/{id}:          
     patch:
       tags:
         - Car
@@ -501,50 +519,124 @@ paths:
           description: Successful response
           content:
             application/json: {}
-  paths:
-  /transactions/{id}:        
-    delete:
+  /cars:
+    post:
       tags:
-        - Transactions
-      summary: remove transaction
-      parameters:
-        - name: Authorization
-          in: header
-          schema:
-            type: string
-          example: >-
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMTc4MTk1MSwiZXhwIjoxNzMxODY4MzUxfQ.IDeAP1XeaRxEU8ujFwL2I29_v2CBAczwZDGJK5sk3FM
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-          example: 6356ac2e-b774-4990-adfc-6185cd0c228f
+        - Car
+      summary: Add a new car to the system
+      operationId: addCar
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Car details
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  example: "Verna"
+                year:
+                  type: integer
+                  example: 2024
+                fuel_type:
+                  type: string
+                  example: "petrol"
+                city:
+                  type: string
+                  example: "Udaipur"
+                latitude:
+                  type: number
+                  format: float
+                  example: 24.6040
+                longitude:
+                  type: number
+                  format: float
+                  example: 73.7091
+                price_per_km:
+                  type: number
+                  example: 25
+                price_per_hr:
+                  type: number
+                  example: 190
+                chassis_number:
+                  type: string
+                  example: "108825894385553"
+                type:
+                  type: string
+                  example: "mini car"
+                image:
+                  type: string
+                  format: binary
+                status:
+                  type: string
+                  example: "available"
+      responses:
+        '201':
+          description: Car added successfully
+        '400':
+          description: Invalid car details
+        '401':
+          description: Unauthorized - Invalid token
+        '500':
+          description: Internal server error
+        content:
+          application/json: {} 
+  /cars/list:
+    get:
+      tags:
+        - Car
+      summary: List all cars
+      operationId: listCars
+      security:
+        - bearerAuth: []
       responses:
         '200':
-          description: Successful response
+          description: A list of cars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    model:
+                      type: string
+                      example: "Verna"
+                    year:
+                      type: integer
+                      example: 2024
+                    fuel_type:
+                      type: string
+                      example: "petrol"
+                    city:
+                      type: string
+                      example: "Udaipur"
+                    price_per_km:
+                      type: number
+                      example: 25
+                    price_per_hr:
+                      type: number
+                      example: 190
+        '401':
+          description: Unauthorized - Invalid token
+        '500':
+          description: Internal server error
           content:
             application/json: {}
+             
   paths:          
-  /bookings/{id}: 
-    put:
+  /transcations/{id}:       
+  put:
       tags:
         - Bookings
       summary: UpdateBookings
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                start_date: '2024-11-23'
+        content: {}
+      security:
+        - bearerAuth: []
       parameters:
-        - name: Authorization
-          in: header
-          schema:
-            type: string
-          example: >-
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlNDAyNWVhLWQ0ZGEtNDIxOS04OTc2LTcyYjA2YmRjNjUyZiIsInJvbGUiOiJDYXIgT3duZXIiLCJpYXQiOjE3MzE4NDc3NTQsImV4cCI6MTczMTkzNDE1NH0.Y8XldhBv3jTMxZjij0AdBKIFrnUxgMreR__Uv4M4YtI
         - name: id
           in: path
           schema:
@@ -599,12 +691,31 @@ paths:
           description: Successful response
           content:
             application/json: {}
-
   /users/me:
     get:
       tags:
         - User
       summary: me
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /users/me:          
+    put:
+      tags:
+        - Users
+      summary: me-update-detail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: Aakriti
+                email: aakriti@gkmit.co
+                phoneNumber: '7827634288'
+                city: agra
       responses:
         '200':
           description: Successful response
@@ -625,71 +736,6 @@ paths:
                 email: aakriti@gkmit.co
                 phoneNumber: '7827634288'
                 city: ajmer
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /bookings/{id}/feedback:
-    patch:
-      tags:
-        - Bookings
-      summary: feedback
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example:
-                feedback: hey it was great ride
-      parameters:
-        - name: Proxy-Authorization
-          in: header
-          schema:
-            type: string
-        - name: Authorization
-          in: header
-          schema:
-            type: string
-          example: >-
-            B
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE3MDI2MSwiZXhwIjoxNzMyMjU2NjYxfQ.umhbVMd3nKnOU72d6A3quuoTykYUAk_atEA-QAa82ok
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-          example: 9dc62a5c-e444-411b-a217-1086dbb8a33a
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json: {}
-  /bookings/{id}/cancel:
-    patch:
-      tags:
-        - Bookings
-      summary: cancelBookings
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              example: ''
-      parameters:
-        - name: Authorization
-          in: header
-          schema:
-            type: string
-          example: >-
-            B
-            eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjAxMTQ4MSwiZXhwIjoxNzMyMDk3ODgxfQ._fzur6OdpCV7itOOTsm-Z47o6MEA8Vk6Bup_VJvUa20
-        - name: id
-          in: path
-          schema:
-            type: string
-          required: true
-          example: c4061d42-741e-4802-a0f8-d5430258053d
       responses:
         '200':
           description: Successful response
@@ -747,6 +793,24 @@ paths:
           example: >-
             B
             eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjllZjRjM2E5LTMwOWEtNGQxZC1iZTRhLTU3MGZhOTZhZDc4MCIsInJvbGUiOiJBZG1pbiIsImlhdCI6MTczMjE2OTQzOSwiZXhwIjoxNzMyMjU1ODM5fQ.vVbK1fUFRxxRFUU2NHBDMfSmnOLk4pIG8DliUoliOCk
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /{id}:
+    patch:
+      tags:
+        - Bookings
+      summary: updateFeedback&CancelByAction
+      requestBody:
+        content: {}
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Successful response
