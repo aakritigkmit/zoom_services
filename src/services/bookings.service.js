@@ -1,18 +1,27 @@
-const { Booking, Car, User, sequelize } = require("../models");
+const { Booking, Car, User, sequelize, Transaction } = require("../models");
 const calculateBookingFare = require("../helpers/calculateFares.helper");
+const { sendTransactionEmail } = require("../utils/email.js");
 const { Parser } = require("json2csv");
 const { throwCustomError } = require("../helpers/common.helper");
 const { StatusCodes } = require("http-status-codes");
 const { sendEmail } = require("../utils/email");
 const moment = require("moment");
+const { Op } = require("sequelize");
 
 const create = async (data, email, userId) => {
-  const rollBack = await sequelize.transaction();
+  const t = await sequelize.transaction();
   try {
     const car = await Car.findByPk(data.car_id);
 
     if (!car) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
+    }
+
+    if (car.status === "unavailable") {
+      throwCustomError(
+        "Car is not available for rent",
+        StatusCodes.BAD_REQUEST,
+      );
     }
 
     const existingBooking = await Booking.findOne({
@@ -36,17 +45,61 @@ const create = async (data, email, userId) => {
       data.end_date,
     );
 
-    const newBooking = await Booking.create({
-      ...data,
-      fare: totalFare,
-      user_id: userId,
+    const newBooking = await Booking.create(
+      {
+        ...data,
+        fare: totalFare,
+        user_id: userId,
+        status: "Pending",
+      },
+      { transaction: t },
+    );
+
+    const GST = totalFare * 0.18;
+    const CGST = totalFare * 0.18;
+    const IGST = totalFare * 0.18;
+    const SGST = totalFare * 0.18;
+    const totalGST = GST + CGST + IGST + SGST;
+    const totalAmount = totalFare + totalGST;
+
+    const transaction = await Transaction.create(
+      {
+        user_id: userId,
+        booking_id: newBooking.id,
+        GST,
+        CGST,
+        IGST,
+        SGST,
+        amount: totalAmount,
+        transaction_status: "Success",
+      },
+      { transaction: t },
+    );
+
+    newBooking.status = "Confirmed";
+    await newBooking.save({ transaction: t });
+
+    car.status = "booked";
+    await car.save({ transaction: t });
+
+    await sendTransactionEmail({
+      to: email,
+      subject: "Booking and Transaction Successful",
+      description: "Your booking and transaction were successfully processed.",
+      car_name: car.model,
+      booking_date: newBooking.created_at,
+      start_date: data.start_date,
+      end_date: data.end_date,
+      total_amount: totalFare,
+      total_gst: totalGST,
+      amount: totalAmount,
+      booking_status: "Confirmed",
     });
 
-    await rollBack.commit();
-
-    return newBooking;
+    await t.commit();
+    return { booking: newBooking, transaction };
   } catch (error) {
-    await rollBack.rollback();
+    await t.rollback();
     throw error;
   }
 };
@@ -204,7 +257,7 @@ const getBookings = async (month, year) => {
   }
 
   const bookings = await Booking.findAll({
-    where: whereCondition.length > 0 ? sequelize.and(...whereCondition) : {}, // Use filters if present
+    where: whereCondition.length > 0 ? sequelize.and(...whereCondition) : {},
     include: [
       { model: Car, as: "car", attributes: ["model", "type"] },
       { model: User, as: "user", attributes: ["name", "email"] },
@@ -216,17 +269,28 @@ const getBookings = async (month, year) => {
 
 const downloadMonthlyBookings = async (data) => {
   const { month, year } = data;
-  const whereConditions = {};
+  const whereConditions = [];
 
   if (month) {
-    whereConditions[sequelize.fn("MONTH", sequelize.col("created_at"))] = month;
+    whereConditions.push(
+      sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal(`MONTH FROM "created_at"`)),
+        month,
+      ),
+    );
   }
+
   if (year) {
-    whereConditions[sequelize.fn("YEAR", sequelize.col("created_at"))] = year;
+    whereConditions.push(
+      sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal(`YEAR FROM "created_at"`)),
+        year,
+      ),
+    );
   }
 
   const bookings = await Booking.findAll({
-    where: whereConditions,
+    where: whereConditions.length ? { [Op.and]: whereConditions } : undefined,
     attributes: [
       "id",
       "user_id",
@@ -254,7 +318,6 @@ const downloadMonthlyBookings = async (data) => {
 
 const bookingScheduler = async () => {
   try {
-    // Fetch all confirmed bookings with user and car details
     const confirmedBookings = await Booking.findAll({
       where: { status: "Confirmed" },
       include: [
