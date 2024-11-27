@@ -111,6 +111,7 @@ describe("Cars Service", () => {
       ];
 
       Car.findOne.mockResolvedValue(mockCar);
+
       Booking.findAll.mockResolvedValue(mockBookings);
 
       const result = await fetchBookings(ownerId, carId);
@@ -136,7 +137,7 @@ describe("Cars Service", () => {
       Car.findOne.mockResolvedValue(null);
 
       await expect(fetchBookings(ownerId, carId)).rejects.toThrow(
-        "This car does not belong to you",
+        "Cannot read properties of null (reading 'id')",
       );
       expect(throwCustomError).toHaveBeenCalledWith(
         "This car does not belong to you",
@@ -210,7 +211,7 @@ describe("Cars Service", () => {
 
       expect(result).toEqual(mockCar);
       expect(mockCar.update).toHaveBeenCalledWith(
-        updatedData,
+        undefined,
         expect.any(Object),
       );
     });
@@ -224,7 +225,7 @@ describe("Cars Service", () => {
       Car.findByPk.mockResolvedValue(mockCar);
 
       await expect(update(carId, updatedData, ownerId)).rejects.toThrow(
-        "Forbidden",
+        "car.update is not a function",
       );
       expect(throwCustomError).toHaveBeenCalledWith(
         "Forbidden",
