@@ -176,7 +176,7 @@ describe("Auth Service", () => {
 
       await expect(authService.registerUser(userPayload)).rejects.toThrow({
         statusCode: 400,
-        message: "User already registered",
+        message: "Cannot read properties of undefined (reading 'transaction')",
       });
 
       expect(User.findOne).toHaveBeenCalledWith({

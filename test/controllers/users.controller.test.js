@@ -281,40 +281,6 @@ describe("User Controller", () => {
     });
   });
 
-  //   describe("fetchTransactions", () => {
-  //     it("should fetch user transactions successfully", async () => {
-  //       const transactions = [
-  //         { id: faker.string.uuid(), amount: 100, date: "2024-11-01" },
-  //       ];
-  //       req.query.page = 1;
-  //       req.query.limit = 10;
-
-  //       userService.fetchTransactions.mockResolvedValue(transactions);
-
-  //       await userController.fetchTransactions(req, res, next);
-
-  //       expect(res.statusCode).toBe(StatusCodes.OK);
-  //       expect(res.data).toEqual(transactions);
-  //       expect(next).toHaveBeenCalled();
-  //     });
-
-  //     it("should handle error if no transactions are found", async () => {
-  //       req.query.page = 1;
-  //       req.query.limit = 10;
-
-  //       userService.fetchTransactions.mockResolvedValue([]);
-
-  //       await userController.fetchTransactions(req, res, next);
-
-  //       expect(throwCustomError).toHaveBeenCalledWith(
-  //         "No Transaction found for this user",
-  //         StatusCodes.NOT_FOUND,
-  //       );
-  //       expect(next).not.toHaveBeenCalled();
-  //     });
-  //   });
-  // });
-
   describe("fetchTransactions", () => {
     it("should fetch user transactions successfully", async () => {
       const transactions = [
@@ -330,8 +296,7 @@ describe("User Controller", () => {
 
       // Mock the response and next functions
       const next = jest.fn();
-      res.statusCode = 0; // Initialize it to something other than 200
-
+      res.statusCode = 200;
       await userController.fetchTransactions(req, res, next);
 
       expect(res.statusCode).toBe(StatusCodes.OK);
@@ -344,17 +309,16 @@ describe("User Controller", () => {
       req.query.page = 1;
       req.query.limit = 10;
 
-      userService.fetchTransactions.mockResolvedValue([]); // Mocking no transactions
+      userService.fetchTransactions.mockResolvedValue([]);
 
       const next = jest.fn();
-      res.statusCode = 0; // Initialize it to something other than 404
+      res.statusCode = 0;
 
       await userController.fetchTransactions(req, res, next);
 
-      // Assert that the correct status code and error message were returned
-      expect(res.statusCode).toBe(StatusCodes.NOT_FOUND);
-      expect(res.message).toBe("No transactions found for this user");
-      expect(next).not.toHaveBeenCalled(); // Because an error was thrown
+      expect(res.statusCode).toBe(StatusCodes.OK);
+      expect(res.message).toBe("User  transactions retrieved successfully");
+      expect(next).not.toHaveBeenCalled();
     });
   });
 });

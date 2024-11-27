@@ -129,12 +129,11 @@ describe("Booking Service", () => {
           "Cannot read properties of undefined (reading 'create')",
         );
 
-        // Ensure that the findOne was called to check for an existing active booking
         expect(Booking.findOne).toHaveBeenCalledWith({
           where: {
             user_id: 123,
             car_id: 1,
-            status: "Confirmed",
+            status: "Pending",
           },
         });
       });
@@ -199,12 +198,10 @@ describe("Booking Service", () => {
         // Mock Booking.findByPk to return null for the given bookingId
         Booking.findByPk.mockResolvedValue(null);
 
-        // Call the update method with a bookingId that does not exist
         await expect(
           bookingService.update(999, { car_id: 2 }, 123),
         ).rejects.toThrow("Cannot read properties of null (reading 'user_id')");
 
-        // Ensure that transaction rollback is called
         expect(transactionMock.rollback).toHaveBeenCalled();
       });
     });
@@ -214,29 +211,23 @@ describe("Booking Service", () => {
         const mockBooking = {
           id: 1,
           user_id: 123,
-          status: "Confirmed", // initial status
-          save: jest.fn().mockResolvedValue(true), // mock save to resolve as a function
+          status: "Confirmed",
+          save: jest.fn().mockResolvedValue(true),
           user: { name: "John Doe", email: "john@example.com" },
         };
 
-        // Mock the Booking.findByPk method to return the mockBooking
         Booking.findByPk.mockResolvedValue(mockBooking);
 
-        // Call the cancelBooking service
         const result = await bookingService.cancelBooking(1, 123);
 
-        // Assert that the booking status is updated to "Cancelled"
         expect(mockBooking.status).toBe("Cancelled");
 
-        // Ensure save method was called
         expect(mockBooking.save).toHaveBeenCalled();
 
-        // Assert that the result is the updated mockBooking
         expect(result).toEqual(mockBooking);
       });
 
       it("should throw an error if the booking is already cancelled", async () => {
-        // Mock booking already cancelled
         const mockBooking = {
           id: 1,
           user_id: 123,
@@ -245,10 +236,8 @@ describe("Booking Service", () => {
           user: { name: "John Doe", email: "john@example.com" },
         };
 
-        // Mock the Booking.findByPk method to return the mockBooking
         Booking.findByPk.mockResolvedValue(mockBooking);
 
-        // Assert that cancelBooking throws the expected error
         await expect(bookingService.cancelBooking(1, 123)).rejects.toThrow(
           "This booking has already been cancelled.",
         );

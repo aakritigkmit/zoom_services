@@ -69,16 +69,12 @@ describe("User Service", () => {
       const payload = {
         email: "john.doe@example.com",
         password: "securePassword",
-        // other necessary fields
       };
 
-      // Mock the User.findOne method to return a user
-      User.findOne.mockResolvedValue({ email: "john.doe@example.com" }); // Simulating existing user
+      User.findOne.mockResolvedValue({ email: "john.doe@example.com" });
 
-      // Run the create function and assert that it throws the correct error
       await expect(create(payload)).rejects.toThrowError("User already exists");
 
-      // Ensure that User.findOne was called exactly once
       expect(User.findOne).toHaveBeenCalledTimes(1);
     });
 
@@ -135,7 +131,11 @@ describe("User Service", () => {
     const loggedInUser = { id: 1, roles: [{ name: "User" }] };
 
     it("should fetch user by id successfully if authorized", async () => {
-      const mockUser = { id: 1, name: "John Doe" };
+      const mockUser = {
+        id: 1,
+        name: "John Doe",
+        email: "john.doe@example.com",
+      };
       User.findOne.mockResolvedValue(mockUser);
 
       const result = await fetchById(1, loggedInUser);
@@ -144,7 +144,11 @@ describe("User Service", () => {
     });
 
     it("should throw access denied error if not authorized", async () => {
-      const mockUser = { id: 2, name: "Jane Doe" };
+      const mockUser = {
+        id: 2,
+        name: "Jane Doe",
+        email: "john.doe@example.com",
+      };
       User.findOne.mockResolvedValue(mockUser);
 
       await expect(fetchById(2, loggedInUser)).rejects.toThrowError(
