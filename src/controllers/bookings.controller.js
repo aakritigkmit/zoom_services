@@ -4,20 +4,31 @@ const { errorHandler } = require("../helpers/common.helper");
 
 const create = async (req, res, next) => {
   const userId = req.user.id;
+
   try {
-    const newBooking = await bookingService.create(
+    const { booking, transaction } = await bookingService.create(
       req.body,
       req.user.email,
       userId,
     );
 
-    res.data = { newBooking };
+    res.data = {
+      booking,
+      transaction,
+    };
     res.message = "Booking created successfully";
     res.statusCode = StatusCodes.CREATED;
 
     next();
   } catch (error) {
-    errorHandler(res, error, error.message, StatusCodes.BAD_REQUEST);
+    console.error(error);
+
+    errorHandler(
+      res,
+      error,
+      error.message || "Failed to create booking",
+      StatusCodes.BAD_REQUEST,
+    );
   }
 };
 
@@ -138,12 +149,14 @@ const fetchBookings = async (req, res, next) => {
 
 const downloadMonthlyBookings = async (req, res, next) => {
   try {
+    const { month, year } = req.query;
     const csvData = await bookingService.downloadMonthlyBookings(req.query);
 
     res.header("Content-Type", "text/csv");
     res.attachment(`bookings_${month || "all"}_${year || "all"}.csv`);
     res.send(csvData);
   } catch (error) {
+    console.log(error);
     errorHandler(res, error, StatusCodes.BAD_REQUEST);
   }
 };
@@ -153,7 +166,6 @@ module.exports = {
   create,
   fetchById,
   update,
-
   monthlySummary,
   getBookings,
   updateByAction,

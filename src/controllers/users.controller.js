@@ -178,7 +178,7 @@ const fetchTransactions = async (req, res, next) => {
     const { page, limit } = req.query;
     const transactions = await userService.fetchTransactions(id, page, limit);
 
-    if (transactions.length === 0) {
+    if (transactions.length) {
       return throwCustomError(
         "No Transaction found for this user",
         StatusCodes.NOT_FOUND,

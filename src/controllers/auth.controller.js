@@ -67,6 +67,7 @@ const login = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.log("login", error);
     errorHandler(
       res,
       error,
@@ -81,17 +82,17 @@ const logout = async (req, res, next) => {
 
   try {
     if (!token) {
-      return errorHandler(res, "Token not provided", 401);
+      return errorHandler(res, "Token not provided", StatusCodes.UNAUTHORIZED);
     }
 
     await blacklistToken(token);
 
     res.message = "Logged out successfully";
     res.statusCode = StatusCodes.OK;
+
     next();
   } catch (error) {
-    console.error("Logout error:", error.message);
-    errorHandler(res, error, "Failed to logout", 400);
+    errorHandler(res, error, "Failed to logout", StatusCodes.BAD_REQUEST);
   }
 };
 

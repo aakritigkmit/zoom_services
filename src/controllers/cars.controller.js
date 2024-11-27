@@ -97,7 +97,9 @@ const update = async (req, res, next) => {
     const ownerId = req.user.id;
     const updatedData = req.body;
 
-    const updatedCar = await carService.update(carId, updatedData, ownerId);
+    const payload = { carId, ownerId, updatedData };
+
+    const updatedCar = await carService.update(payload);
 
     if (!updatedCar) {
       throwCustomError("Car not found", StatusCodes.NOT_FOUND);
