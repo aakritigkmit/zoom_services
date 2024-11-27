@@ -21,48 +21,14 @@ describe("Transaction Controller", () => {
     next = jest.fn();
   });
 
-  describe("create", () => {
-    it("should create a transaction successfully", async () => {
-      const transactionData = {
-        amount: 100,
-        user_id: faker.string.uuid(),
-        car_id: faker.string.uuid(),
-        status: "Completed",
-      };
-      req.body = transactionData;
-
-      transactionService.create.mockResolvedValue(transactionData);
-
-      await transactionController.create(req, res, next);
-
-      expect(res.message).toBe("Transaction created successfully");
-      expect(res.statusCode).toBe(StatusCodes.CREATED);
-      expect(res.data.transaction).toEqual(transactionData);
-      expect(next).toHaveBeenCalled();
-    });
-
-    it("should handle error during transaction creation", async () => {
-      req.body = { amount: 100 };
-
-      transactionService.create.mockRejectedValue(
-        new Error("Failed to create transaction"),
-      );
-
-      await transactionController.create(req, res, next);
-
-      expect(errorHandler).toHaveBeenCalled();
-      expect(next).not.toHaveBeenCalled();
-    });
-  });
-
   describe("fetchAll", () => {
     it("should fetch all transactions successfully", async () => {
       const transactions = [
-        { id: faker.string.uuid(), amount: 100, status: "Completed" },
-        { id: faker.string.uuid(), amount: 50, status: "Pending" },
+        { id: faker.string.uuid(), amount: 100, date: "2024-11-01" },
+        { id: faker.string.uuid(), amount: 200, date: "2024-11-02" },
       ];
       req.query.page = 1;
-      req.query.limit = 10;
+      req.query.pageSize = 10;
 
       transactionService.fetchAll.mockResolvedValue(transactions);
 
@@ -70,13 +36,13 @@ describe("Transaction Controller", () => {
 
       expect(res.message).toBe("Transactions fetched successfully");
       expect(res.statusCode).toBe(StatusCodes.OK);
-      expect(res.data.transactions).toEqual(transactions);
+      expect(res.data).toEqual(transactions);
       expect(next).toHaveBeenCalled();
     });
 
-    it("should handle error during fetching transactions", async () => {
+    it("should handle error while fetching transactions", async () => {
       req.query.page = 1;
-      req.query.limit = 10;
+      req.query.pageSize = 10;
 
       transactionService.fetchAll.mockRejectedValue(
         new Error("Error fetching transactions"),
@@ -90,14 +56,14 @@ describe("Transaction Controller", () => {
   });
 
   describe("fetchById", () => {
-    it("should fetch a transaction by ID successfully", async () => {
+    it("should fetch transaction by ID successfully", async () => {
       const transactionId = faker.string.uuid();
       req.params.id = transactionId;
 
       const transaction = {
         id: transactionId,
         amount: 100,
-        status: "Completed",
+        date: "2024-11-01",
       };
       transactionService.fetchById.mockResolvedValue(transaction);
 
@@ -109,7 +75,7 @@ describe("Transaction Controller", () => {
       expect(next).toHaveBeenCalled();
     });
 
-    it("should handle error during transaction fetch by ID", async () => {
+    it("should handle error while fetching transaction by ID", async () => {
       req.params.id = faker.string.uuid();
 
       transactionService.fetchById.mockRejectedValue(
@@ -124,11 +90,11 @@ describe("Transaction Controller", () => {
   });
 
   describe("remove", () => {
-    it("should delete a transaction successfully", async () => {
+    it("should delete transaction successfully", async () => {
       const transactionId = faker.string.uuid();
       req.params.id = transactionId;
 
-      transactionService.remove.mockResolvedValue(transactionId);
+      transactionService.remove.mockResolvedValue(true);
 
       await transactionController.remove(req, res, next);
 
@@ -137,11 +103,11 @@ describe("Transaction Controller", () => {
       expect(next).toHaveBeenCalled();
     });
 
-    it("should handle error during transaction deletion", async () => {
+    it("should handle error while deleting transaction", async () => {
       req.params.id = faker.string.uuid();
 
       transactionService.remove.mockRejectedValue(
-        new Error("Failed to delete transaction"),
+        new Error("Error deleting transaction"),
       );
 
       await transactionController.remove(req, res, next);

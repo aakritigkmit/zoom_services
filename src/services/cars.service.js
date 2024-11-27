@@ -5,61 +5,50 @@ const { StatusCodes } = require("http-status-codes");
 const { throwCustomError } = require("../helpers/common.helper.js");
 
 const create = async (carData, ownerId, imagePath) => {
-  const t = await sequelize.transaction();
+  const cleanCarData = { ...carData };
+  const latitude = parseFloat(carData.latitude);
+  const longitude = parseFloat(carData.longitude);
+  const pricePerKm = parseFloat(carData.price_per_km);
+  const pricePerHr = parseFloat(carData.price_per_hr);
+  const year = parseInt(carData.year, 10);
 
-  try {
-    const cleanCarData = { ...carData };
-    const latitude = parseFloat(carData.latitude);
-    const longitude = parseFloat(carData.longitude);
-    const pricePerKm = parseFloat(carData.price_per_km);
-    const pricePerHr = parseFloat(carData.price_per_hr);
-    const year = parseInt(carData.year, 10);
+  const car = await Car.create({
+    ...cleanCarData,
+    _id: ownerId,
+    image: imagePath,
+    latitude,
+    longitude,
+    price_per_km: pricePerKm,
+    price_per_hr: pricePerHr,
+    year,
+    owner_id: ownerId,
+  });
 
-    const car = await Car.create({
-      ...cleanCarData,
-      _id: ownerId,
-      image: imagePath,
-      latitude,
-      longitude,
-      price_per_km: pricePerKm,
-      price_per_hr: pricePerHr,
-      year,
-      owner_id: ownerId,
-    });
+  const carId = car.id;
 
-    console.log("car", car);
-    const carId = newCar.id;
-
-    if (isNaN(latitude) || isNaN(longitude)) {
-      throwCustomError(
-        "Latitude and longitude must be valid numbers.",
-        StatusCodes.BAD_REQUEST,
-      );
-    }
-
-    if (!latitude || !longitude) {
-      throwCustomError(
-        "Latitude and longitude are required for geolocation.",
-        StatusCodes.BAD_REQUEST,
-      );
-    }
-
-    await client.sendCommand([
-      "GEOADD",
-      "cars:locations",
-      longitude.toString(),
-      latitude.toString(),
-      carId.toString(),
-    ]);
-
-    await t.commit();
-
-    return car;
-  } catch (error) {
-    console.log(error);
-    await t.rollback();
-    throw error;
+  if (isNaN(latitude) || isNaN(longitude)) {
+    throwCustomError(
+      "Latitude and longitude must be valid numbers.",
+      StatusCodes.BAD_REQUEST,
+    );
   }
+
+  if (!latitude || !longitude) {
+    throwCustomError(
+      "Latitude and longitude are required for geolocation.",
+      StatusCodes.BAD_REQUEST,
+    );
+  }
+
+  await client.sendCommand([
+    "GEOADD",
+    "cars:locations",
+    longitude.toString(),
+    latitude.toString(),
+    carId.toString(),
+  ]);
+
+  return car;
 };
 
 const fetchBookings = async (ownerId, carId) => {
@@ -130,7 +119,6 @@ const findNearestCars = async (userLatitude, userLongitude, radius = 10) => {
 
     return nearbyCars;
   } catch (error) {
-    console.error("Error fetching nearby cars:", error);
     throw error;
   }
 };
@@ -139,79 +127,55 @@ const fetchById = async (carId) => {
   return await Car.findByPk(carId);
 };
 
-const update = async (carId, updatedData, ownerId) => {
-  const t = await sequelize.transaction();
-  try {
-    const car = await Car.findByPk(carId, { transaction: t });
+const update = async (payload) => {
+  const { carId, updatedData, ownerId } = payload;
 
-    if (!car) {
-      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
-    }
+  const car = await Car.findByPk(carId);
 
-    if (ownerId !== car.owner_id) {
-      throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
-    }
-
-    await car.update(updatedData, { transaction: t });
-
-    await t.commit();
-
-    return car;
-  } catch (error) {
-    console.log(error);
-    await t.rollback();
-    throw error;
+  if (!car) {
+    throwCustomError("Car not found", StatusCodes.NOT_FOUND);
   }
+
+  if (ownerId !== car.owner_id) {
+    throwCustomError("Forbidden", StatusCodes.FORBIDDEN);
+  }
+
+  await car.update(updatedData);
+
+  return car;
 };
 
 const updateStatus = async (carId, status, userId) => {
-  const t = await sequelize.transaction();
-
-  try {
-    const car = await Car.findByPk(carId, { transaction: t });
-    if (!car) {
-      throwCustomError("Car not found", StatusCodes.NOT_FOUND);
-    }
-
-    if (car.owner_id !== userId) {
-      throwCustomError(
-        "Forbidden: You don't have permission to update this car's status.",
-        StatusCodes.FORBIDDEN,
-      );
-    }
-
-    car.status = status;
-
-    await car.save({ transaction: t });
-
-    await t.commit();
-
-    return car;
-  } catch (error) {
-    await t.rollback();
-    throw error;
+  const car = await Car.findByPk(carId);
+  if (!car) {
+    throwCustomError("Car not found", StatusCodes.NOT_FOUND);
   }
+
+  if (car.owner_id !== userId) {
+    throwCustomError(
+      "Forbidden: You don't have permission to update this car's status.",
+      StatusCodes.FORBIDDEN,
+    );
+  }
+
+  car.status = status;
+
+  await car.save();
+
+  return car;
 };
 
 const remove = async (carId) => {
-  const transaction = await sequelize.transaction();
+  const car = await Car.findByPk(carId);
 
-  try {
-    const car = await Car.findByPk(carId, { transaction });
-
-    if (!car) {
-      await transaction.rollback();
-      return { statusCode: StatusCodes.NOT_FOUND, message: "Car not found" };
-    }
-
-    await car.destroy({ transaction });
-    await transaction.commit();
-
-    return { message: "Car deleted successfully" };
-  } catch (error) {
+  if (!car) {
     await transaction.rollback();
-    throw error;
+    return { statusCode: StatusCodes.NOT_FOUND, message: "Car not found" };
   }
+
+  await car.destroy();
+
+  return { message: "Car deleted successfully" };
 };
 module.exports = {
   create,

@@ -281,37 +281,80 @@ describe("User Controller", () => {
     });
   });
 
+  //   describe("fetchTransactions", () => {
+  //     it("should fetch user transactions successfully", async () => {
+  //       const transactions = [
+  //         { id: faker.string.uuid(), amount: 100, date: "2024-11-01" },
+  //       ];
+  //       req.query.page = 1;
+  //       req.query.limit = 10;
+
+  //       userService.fetchTransactions.mockResolvedValue(transactions);
+
+  //       await userController.fetchTransactions(req, res, next);
+
+  //       expect(res.statusCode).toBe(StatusCodes.OK);
+  //       expect(res.data).toEqual(transactions);
+  //       expect(next).toHaveBeenCalled();
+  //     });
+
+  //     it("should handle error if no transactions are found", async () => {
+  //       req.query.page = 1;
+  //       req.query.limit = 10;
+
+  //       userService.fetchTransactions.mockResolvedValue([]);
+
+  //       await userController.fetchTransactions(req, res, next);
+
+  //       expect(throwCustomError).toHaveBeenCalledWith(
+  //         "No Transaction found for this user",
+  //         StatusCodes.NOT_FOUND,
+  //       );
+  //       expect(next).not.toHaveBeenCalled();
+  //     });
+  //   });
+  // });
+
   describe("fetchTransactions", () => {
     it("should fetch user transactions successfully", async () => {
       const transactions = [
-        { id: faker.string.uuid(), amount: 100, date: "2024-11-01" },
+        { id: "txn1", amount: 100, status: "Completed" },
+        { id: "txn2", amount: 50, status: "Pending" },
       ];
+
+      req.params.id = "userId"; // User ID for fetching transactions
       req.query.page = 1;
       req.query.limit = 10;
 
-      userService.fetchTransactions.mockResolvedValue(transactions);
+      userService.fetchTransactions.mockResolvedValue(transactions); // Mocking the service
+
+      // Mock the response and next functions
+      const next = jest.fn();
+      res.statusCode = 0; // Initialize it to something other than 200
 
       await userController.fetchTransactions(req, res, next);
 
-      // expect(res.message).toBe("User transactions retrieved successfully");
       expect(res.statusCode).toBe(StatusCodes.OK);
       expect(res.data).toEqual(transactions);
       expect(next).toHaveBeenCalled();
     });
 
-    it("should handle error if no transactions are found", async () => {
+    it("should return error if no transactions found", async () => {
+      req.params.id = "userId";
       req.query.page = 1;
       req.query.limit = 10;
 
-      userService.fetchTransactions.mockResolvedValue([]);
+      userService.fetchTransactions.mockResolvedValue([]); // Mocking no transactions
+
+      const next = jest.fn();
+      res.statusCode = 0; // Initialize it to something other than 404
 
       await userController.fetchTransactions(req, res, next);
 
-      expect(throwCustomError).toHaveBeenCalledWith(
-        "No Transaction found for this user",
-        StatusCodes.NOT_FOUND,
-      );
-      expect(next).not.toHaveBeenCalled();
+      // Assert that the correct status code and error message were returned
+      expect(res.statusCode).toBe(StatusCodes.NOT_FOUND);
+      expect(res.message).toBe("No transactions found for this user");
+      expect(next).not.toHaveBeenCalled(); // Because an error was thrown
     });
   });
 });

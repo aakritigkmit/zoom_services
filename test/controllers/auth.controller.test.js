@@ -63,7 +63,7 @@ describe("Auth Controller", () => {
       const otp = faker.number.int();
       req.body = { email, otp };
 
-      authService.verifyOtp.mockResolvedValue(true); // Mock the service
+      authService.verifyOtp.mockResolvedValue(true);
 
       await authController.verifyOtp(req, res, next);
 

@@ -41,7 +41,7 @@ const transactionSerializerMiddleware = (transaction) => ({
 });
 
 const transactionsListSerializer = (transactionsData) => ({
-  data: transactionsData.data.map(transactionSerializerMiddleware),
+  transactions: transactionsData.map(transactionSerializerMiddleware),
   pagination: transactionsData.pagination,
 });
 
@@ -54,7 +54,7 @@ const transactionSerializer = (req, res, next) => {
     if (data.transaction) {
       return { transaction: transactionSerializerMiddleware(data.transaction) };
     } else if (data.transactions) {
-      return { transactions: transactionsListSerializer(data.transactions) };
+      return transactionsListSerializer(data.transactions);
     } else {
       return data;
     }

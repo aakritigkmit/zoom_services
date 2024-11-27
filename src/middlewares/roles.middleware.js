@@ -1,4 +1,5 @@
 const { errorHandler, responseHandler } = require("../helpers/common.helper");
+const { StatusCodes } = require("http-status-codes");
 
 const checkRole = (requiredRoles) => {
   return async (req, res, next) => {
@@ -10,17 +11,17 @@ const checkRole = (requiredRoles) => {
       const hasAccess = requiredRoles.some((role) =>
         userRoleNames.includes(role),
       );
-
+      console.log(requiredRoles);
+      console.log(userRoleNames);
       if (!hasAccess) {
-        res.message = "Access denied";
-        res.statusCode = 403;
+        res.message = "Access denied ,You are not Authorized";
+        res.statusCode = StatusCodes.FORBIDDEN;
         return responseHandler(req, res);
       }
 
       next();
     } catch (error) {
-      console.error("Error in role middleware:", error);
-      return errorHandler(res, error, "Server error", 400);
+      return errorHandler(res, error, "Server error", StatusCodes.BAD_REQUEST);
     }
   };
 };
