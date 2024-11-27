@@ -21,7 +21,7 @@ const verifyToken = async (token) => {
   }
 };
 
-exports.blacklistToken = async (token) => {
+const blacklistToken = async (token) => {
   const decodedToken = jwt.decode(token);
   if (!decodedToken || !decodedToken.exp) {
     throw new Error("Failed to decode token or retrieve expiration.");
@@ -35,4 +35,4 @@ exports.blacklistToken = async (token) => {
   }
 };
 
-module.exports = { generateToken, verifyToken };
+module.exports = { generateToken, verifyToken, blacklistToken };
