@@ -17,9 +17,9 @@ const registerSchema = Joi.object({
     .required(),
 
   password: Joi.string().min(6).required(),
-  // roleName: Joi.array().items(Joi.string()).required(),
-  roleName: Joi.array()
-    .items(Joi.string().valid("Customer", "Car Owner"))
+  roleName: Joi.string()
+    .valid("Customer", "Car Owner")
+    .default("Customer")
     .not(Joi.string().valid("Admin")),
   city: Joi.string().required(),
 });
