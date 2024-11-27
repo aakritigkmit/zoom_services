@@ -1,4 +1,5 @@
 const { errorHandler } = require("../../src/helpers/common.helper");
+const { StatusCodes } = require("http-status-codes");
 
 function validateRequest(schema, params = false) {
   return (req, res, next) => {
@@ -12,7 +13,7 @@ function validateRequest(schema, params = false) {
         path: detail.path,
       }));
 
-      return errorHandler(res, error, errorMessage, 400);
+      return errorHandler(res, error, errorMessage, StatusCodes.BAD_REQUEST);
     }
 
     next();

@@ -1,6 +1,7 @@
 const { verifyToken } = require("../helpers/jwt.helper");
 const { User, Role } = require("../models");
 const { errorHandler } = require("../helpers/common.helper");
+const { StatusCodes } = require("http-status-codes");
 
 const authenticate = async (req, res, next) => {
   const token = (
@@ -8,7 +9,11 @@ const authenticate = async (req, res, next) => {
   )?.split(" ")[1];
 
   if (!token) {
-    return errorHandler(res, "Access denied. No token provided", 401);
+    return errorHandler(
+      res,
+      "Access denied. No token provided",
+      StatusCodes.UNAUTHORIZED,
+    );
   }
 
   try {
@@ -23,16 +28,20 @@ const authenticate = async (req, res, next) => {
     });
 
     if (!user || !user.verified) {
-      return errorHandler(res, "User not verified", 403);
+      return errorHandler(res, "User not verified", StatusCodes.FORBIDDEN);
     }
 
     req.user = user;
     next();
   } catch (error) {
     if (error.message === "Token is blacklisted") {
-      return errorHandler(res, "Token has been revoked", 401);
+      return errorHandler(
+        res,
+        "Token has been revoked",
+        StatusCodes.UNAUTHORIZED,
+      );
     }
-    errorHandler(res, error.message, 401);
+    errorHandler(res, error.message, StatusCodes.UNAUTHORIZED);
   }
 };
 
