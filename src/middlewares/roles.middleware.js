@@ -11,8 +11,7 @@ const checkRole = (requiredRoles) => {
       const hasAccess = requiredRoles.some((role) =>
         userRoleNames.includes(role),
       );
-      console.log(requiredRoles);
-      console.log(userRoleNames);
+
       if (!hasAccess) {
         res.message = "Access denied ,You are not Authorized";
         res.statusCode = StatusCodes.FORBIDDEN;

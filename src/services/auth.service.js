@@ -110,7 +110,7 @@ const registerUser = async (payload) => {
 
       await user.addRole(role, { transaction });
 
-      await sendOtp(email);
+      await sendOtpEmail(email);
     }
 
     await transaction.commit();
