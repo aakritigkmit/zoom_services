@@ -8,13 +8,6 @@ const {
   transactionSerializer,
 } = require("../serializers/transactions.serializer");
 
-router.post(
-  "/",
-  authenticate,
-  transactionController.create,
-  transactionSerializer,
-  commonHelpers.responseHandler,
-);
 router.get(
   "/",
   authenticate,
