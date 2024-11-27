@@ -53,8 +53,6 @@ const userSerializer = (req, res, next) => {
   res.data = serializeData(res.data);
   res.data = toCamelCase(res.data);
 
-  console.log(">>>>>>res.data", res.data);
-
   next();
 };
 
